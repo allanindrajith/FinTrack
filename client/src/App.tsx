@@ -556,7 +556,7 @@ export function App() {
             <span>Zero-Knowledge Personal Finance</span>
           </div>
           <div className="text-center sm:text-right">
-            <span>Open Source under MIT License &bull; Created by </span>
+            <span>Created by </span>
             <a
               href="https://itsallan.me"
               target="_blank"
