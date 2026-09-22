@@ -25,7 +25,7 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
     <div className="space-y-6">
       {/* Top Banner / KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="wise-card p-6 rounded-[24px]">
+        <div className="fintrack-card p-6 rounded-[24px]">
           <div className="text-xs font-bold uppercase tracking-wider text-[#868685]">
             Detected Subscriptions
           </div>
@@ -37,7 +37,7 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
           </div>
         </div>
 
-        <div className="wise-card p-6 rounded-[24px]">
+        <div className="fintrack-card p-6 rounded-[24px]">
           <div className="text-xs font-bold uppercase tracking-wider text-[#6b21a8]">
             Monthly Burn Rate
           </div>
@@ -49,7 +49,7 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
           </div>
         </div>
 
-        <div className="wise-card p-6 rounded-[24px]">
+        <div className="fintrack-card p-6 rounded-[24px]">
           <div className="text-xs font-bold uppercase tracking-wider text-[#054d28]">
             Annual Projected
           </div>
@@ -63,7 +63,7 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
       </div>
 
       {/* Subscription Cards Grid */}
-      <div className="wise-card rounded-[24px] p-6">
+      <div className="fintrack-card rounded-[24px] p-6">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="text-base font-[900] text-[#0e0f0c] tracking-tight">Recurring Subscriptions & Services</h2>

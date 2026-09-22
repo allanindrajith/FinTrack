@@ -27,7 +27,7 @@ export const BudgetProgress: React.FC<BudgetProgressProps> = ({
   };
 
   return (
-    <div className="wise-card p-6 rounded-[24px] flex flex-col h-[400px]">
+    <div className="fintrack-card p-6 rounded-[24px] flex flex-col h-[400px]">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-base font-[900] text-[#0e0f0c] tracking-tight">Budget vs. Actual</h2>

@@ -7,7 +7,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        wise: {
+        fintrack: {
+          DEFAULT: '#9fe870',
+          active: '#cdffad',
+          neutral: '#c5edab',
+          pale: '#e2f6d5',
+        },
+        brand: {
           DEFAULT: '#9fe870',
           active: '#cdffad',
           neutral: '#c5edab',

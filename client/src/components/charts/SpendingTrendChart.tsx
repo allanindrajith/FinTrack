@@ -33,7 +33,7 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({ data }) 
 
   if (!data || data.length === 0) {
     return (
-      <div className="wise-card p-6 rounded-[24px] flex flex-col items-center justify-center h-[400px] text-center">
+      <div className="fintrack-card p-6 rounded-[24px] flex flex-col items-center justify-center h-[400px] text-center">
         <div className="text-sm font-bold text-[#0e0f0c]">No Historical Trends Yet</div>
         <div className="text-xs text-[#868685] mt-1">Import multiple statements over time to see monthly trends.</div>
       </div>
@@ -41,7 +41,7 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({ data }) 
   }
 
   return (
-    <div className="wise-card p-6 rounded-[24px] flex flex-col h-[400px]">
+    <div className="fintrack-card p-6 rounded-[24px] flex flex-col h-[400px]">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-base font-[900] text-[#0e0f0c] tracking-tight">Spending & Income Trends</h2>

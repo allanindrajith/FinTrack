@@ -10,7 +10,7 @@
   }
 }
 
-/* Custom scrollbars matching Wise sage palette */
+/* Custom scrollbars matching FinTrack sage palette */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -29,32 +29,32 @@
   background: #9fe870;
 }
 
-/* Wise Signature Card: White surface sitting on sage canvas, 24px radius */
-.wise-card {
+/* FinTrack Signature Card: White surface sitting on sage canvas, 24px radius */
+.fintrack-card {
   background-color: #ffffff;
   border-radius: 24px;
   border: 1px solid rgba(14, 15, 12, 0.06);
   box-shadow: 0 2px 8px -2px rgba(14, 15, 12, 0.05);
 }
 
-.wise-card-hover {
+.fintrack-card-hover {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.wise-card-hover:hover {
+.fintrack-card-hover:hover {
   box-shadow: 0 8px 24px -4px rgba(14, 15, 12, 0.08);
   transform: translateY(-1px);
 }
 
 /* Sage Feature Card */
-.wise-card-sage {
+.fintrack-card-sage {
   background-color: #e8ebe6;
   border-radius: 24px;
   border: 1px solid rgba(14, 15, 12, 0.08);
 }
 
-/* Primary Wise Pill Button */
-.wise-btn-primary {
+/* Primary FinTrack Pill Button */
+.fintrack-btn-primary {
   background-color: #9fe870;
   color: #0e0f0c;
   border-radius: 9999px;
@@ -62,17 +62,17 @@
   transition: all 0.15s ease-in-out;
 }
 
-.wise-btn-primary:hover {
+.fintrack-btn-primary:hover {
   background-color: #cdffad;
   transform: scale(1.02);
 }
 
-.wise-btn-primary:active {
+.fintrack-btn-primary:active {
   transform: scale(0.98);
 }
 
 /* Secondary Button */
-.wise-btn-secondary {
+.fintrack-btn-secondary {
   background-color: #e8ebe6;
   color: #0e0f0c;
   border-radius: 9999px;
@@ -80,12 +80,12 @@
   transition: all 0.15s ease-in-out;
 }
 
-.wise-btn-secondary:hover {
+.fintrack-btn-secondary:hover {
   background-color: #dbe0d8;
 }
 
 /* Outline Button */
-.wise-btn-outline {
+.fintrack-btn-outline {
   background-color: #ffffff;
   color: #0e0f0c;
   border: 1.5px solid #0e0f0c;
@@ -94,6 +94,6 @@
   transition: all 0.15s ease-in-out;
 }
 
-.wise-btn-outline:hover {
+.fintrack-btn-outline:hover {
   background-color: #e8ebe6;
 }

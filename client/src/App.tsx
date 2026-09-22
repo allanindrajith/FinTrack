@@ -128,7 +128,7 @@ export function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Signature Wise Hero Banner */}
+        {/* Signature FinTrack Hero Banner */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 p-8 rounded-[24px] bg-white border border-[#e8ebe6] shadow-card">
           <div className="space-y-1.5 max-w-2xl">
             <div className="flex items-center gap-2">
@@ -192,7 +192,7 @@ export function App() {
               />
 
               {/* Quick Recent Transactions Card */}
-              <div className="wise-card p-6 rounded-[24px] flex flex-col h-[400px]">
+              <div className="fintrack-card p-6 rounded-[24px] flex flex-col h-[400px]">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h2 className="text-base font-[900] text-[#0e0f0c] tracking-tight">Recent Transactions</h2>

@@ -7,9 +7,9 @@ interface CategoryPieChartProps {
   totalSpent: number;
 }
 
-// Wise-inspired Scandinavian fintech color palette
-const WISE_PALETTE = [
-  '#9fe870', // Wise Green
+// FinTrack Nordic fintech color palette
+const FINTRACK_PALETTE = [
+  '#9fe870', // FinTrack Green
   '#2ead4b', // Positive Green
   '#ffc091', // Accent Orange
   '#38c8ff', // Accent Cyan
@@ -33,7 +33,7 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({ data, totalS
 
   if (!data || data.length === 0) {
     return (
-      <div className="wise-card p-6 rounded-[24px] flex flex-col items-center justify-center h-[400px] text-center">
+      <div className="fintrack-card p-6 rounded-[24px] flex flex-col items-center justify-center h-[400px] text-center">
         <div className="w-12 h-12 rounded-full bg-[#e8ebe6] flex items-center justify-center text-[#454745] mb-3">
           📊
         </div>
@@ -46,7 +46,7 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({ data, totalS
   }
 
   return (
-    <div className="wise-card p-6 rounded-[24px] flex flex-col h-[400px]">
+    <div className="fintrack-card p-6 rounded-[24px] flex flex-col h-[400px]">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-base font-[900] text-[#0e0f0c] tracking-tight">Spending by Category</h2>
@@ -101,7 +101,7 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({ data, totalS
                 {data.map((_, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={WISE_PALETTE[index % WISE_PALETTE.length]}
+                    fill={FINTRACK_PALETTE[index % FINTRACK_PALETTE.length]}
                     stroke="#ffffff"
                     strokeWidth={2}
                   />
@@ -127,7 +127,7 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({ data, totalS
               <div className="flex items-center gap-2.5 min-w-0">
                 <span
                   className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: WISE_PALETTE[index % WISE_PALETTE.length] }}
+                  style={{ backgroundColor: FINTRACK_PALETTE[index % FINTRACK_PALETTE.length] }}
                 />
                 <span className="text-xs font-semibold text-[#0e0f0c] truncate">
                   {cat.categoryName}

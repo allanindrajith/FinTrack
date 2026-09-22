@@ -36,7 +36,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
       {/* 1. Net Cash Flow */}
-      <div className="wise-card wise-card-hover p-6 rounded-[24px] relative overflow-hidden">
+      <div className="fintrack-card fintrack-card-hover p-6 rounded-[24px] relative overflow-hidden">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-[#868685]">Net Cash Flow</span>
           <div className={`w-8 h-8 rounded-full flex items-center justify-center ${netSavings >= 0 ? 'bg-[#e2f6d5] text-[#054d28]' : 'bg-[#fce8e8] text-[#a72027]'}`}>
@@ -57,7 +57,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
       </div>
 
       {/* 2. Total Income */}
-      <div className="wise-card wise-card-hover p-6 rounded-[24px] relative overflow-hidden">
+      <div className="fintrack-card fintrack-card-hover p-6 rounded-[24px] relative overflow-hidden">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-[#868685]">Total Income</span>
           <div className="w-8 h-8 rounded-full bg-[#e2f6d5] text-[#054d28] flex items-center justify-center">
@@ -75,7 +75,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
       </div>
 
       {/* 3. Total Expenses */}
-      <div className="wise-card wise-card-hover p-6 rounded-[24px] relative overflow-hidden">
+      <div className="fintrack-card fintrack-card-hover p-6 rounded-[24px] relative overflow-hidden">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-[#868685]">Total Expenses</span>
           <div className="w-8 h-8 rounded-full bg-[#fce8e8] text-[#a72027] flex items-center justify-center">
@@ -93,7 +93,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
       </div>
 
       {/* 4. Savings Rate */}
-      <div className="wise-card wise-card-hover p-6 rounded-[24px] relative overflow-hidden">
+      <div className="fintrack-card fintrack-card-hover p-6 rounded-[24px] relative overflow-hidden">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-[#868685]">Savings Rate</span>
           <div className="w-8 h-8 rounded-full bg-[#e8ebe6] text-[#0e0f0c] flex items-center justify-center">
@@ -111,7 +111,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
       </div>
 
       {/* 5. Subscriptions Burn */}
-      <div className="wise-card wise-card-hover p-6 rounded-[24px] relative overflow-hidden">
+      <div className="fintrack-card fintrack-card-hover p-6 rounded-[24px] relative overflow-hidden">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold uppercase tracking-wider text-[#868685]">Subscriptions</span>
           <div className="w-8 h-8 rounded-full bg-[#f5e8fc] text-[#6b21a8] flex items-center justify-center">

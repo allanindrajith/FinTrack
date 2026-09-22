@@ -105,7 +105,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   };
 
   return (
-    <div className="wise-card rounded-[24px] overflow-hidden">
+    <div className="fintrack-card rounded-[24px] overflow-hidden">
       {/* Table Header & Controls */}
       <div className="p-5 border-b border-[#e8ebe6] bg-white flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
         <div>

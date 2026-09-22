@@ -62,9 +62,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="text-xl font-[900] tracking-tight text-[#0e0f0c]">
                   FinTrack
                 </span>
-                <span className="hidden sm:inline-block ml-2 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#054d28] bg-[#e2f6d5] rounded-full">
-                  Wise System
-                </span>
               </div>
             </div>
 
@@ -145,7 +142,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               </select>
             </div>
 
-            {/* Primary Action Button: Wise Green CTA Pill */}
+            {/* Primary Action Button: FinTrack Green CTA Pill */}
             <button
               id="btn-open-upload"
               onClick={onOpenUpload}
