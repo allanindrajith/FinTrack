@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "description": "FinTrack backend server with CSV parsing, normalization, and categorization engine",
+  "author": "Allan Indrajith (https://itsallan.me)",
+  "homepage": "https://itsallan.me",
+  "license": "MIT",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",

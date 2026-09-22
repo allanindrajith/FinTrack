@@ -2,7 +2,9 @@
   "name": "fintrack",
   "version": "1.0.0",
   "description": "FinTrack - Personal Finance Tracker with Intelligent CSV Parsing & Analytics",
-  "private": true,
+  "author": "Allan Indrajith (https://itsallan.me)",
+  "homepage": "https://itsallan.me",
+  "license": "MIT",
   "scripts": {
     "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
     "dev:server": "npm run dev --prefix server",

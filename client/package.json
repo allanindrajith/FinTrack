@@ -1,7 +1,9 @@
 {
   "name": "fintrack-client",
-  "private": true,
   "version": "1.0.0",
+  "author": "Allan Indrajith (https://itsallan.me)",
+  "homepage": "https://itsallan.me",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",

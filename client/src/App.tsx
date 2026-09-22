@@ -546,6 +546,28 @@ export function App() {
           }}
         />
       )}
+
+      {/* Footer */}
+      <footer className="w-full border-t border-[#0e0f0c]/10 bg-[#e8ebe6]/80 backdrop-blur-md py-6 mt-16 text-center text-xs text-[#0e0f0c]/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-[#0e0f0c]">FinTrack</span>
+            <span>&bull;</span>
+            <span>Zero-Knowledge Personal Finance</span>
+          </div>
+          <div className="text-center sm:text-right">
+            <span>Open Source under MIT License &bull; Created by </span>
+            <a
+              href="https://itsallan.me"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-[#0e0f0c] hover:underline underline-offset-2 transition-colors"
+            >
+              Allan Indrajith (itsallan.me)
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

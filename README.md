@@ -283,5 +283,16 @@ npm run build --prefix server
 
 ---
 
-## License
-MIT License. FinTrack — Privacy-First Financial Intelligence.
+## 👨‍💻 Author
+
+Crafted and maintained by **Allan Indrajith**.
+* 🌐 Portfolio & Works: **[itsallan.me](https://itsallan.me)**
+* 🐙 GitHub: **[@allanindrajith](https://github.com/allanindrajith)**
+
+---
+
+## 📄 License
+
+FinTrack is completely free and open-source under the **[MIT License](LICENSE)**. Anyone is free to use, run, modify, fork, or build upon this project.
+
+Copyright © 2026 **[Allan Indrajith](https://itsallan.me)**.
