@@ -10,6 +10,31 @@
 
 ---
 
+## ✨ System Preview & Interactive Tour
+
+<p align="center">
+  <img src="docs/assets/dashboard-preview.png" alt="FinTrack Financial Dashboard" width="100%" />
+</p>
+
+### Interactive Walkthrough
+<p align="center">
+  <img src="docs/assets/fintrack-demo.webp" alt="FinTrack Interactive Walkthrough" width="100%" />
+</p>
+
+### Key Feature Highlights
+
+| **AI Financial Advisor Drawer** | **Zero-Knowledge Security & Key Derivation** |
+|:---:|:---:|
+| <img src="docs/assets/ai-insights-drawer.png" alt="AI Financial Advisor Drawer" width="100%" /> | <img src="docs/assets/zero-knowledge-security.png" alt="Zero-Knowledge Security" width="100%" /> |
+| *Real-time dual-tier financial intelligence & spending anomalies* | *Client-side PBKDF2 (600,000 rounds) and AES-256-GCM encryption* |
+
+| **Multi-Bank Statement Import & Mapping** | **Automated Data Retention & Ephemeral Purge** |
+|:---:|:---:|
+| <img src="docs/assets/csv-import-workflow.png" alt="Bank Statement CSV Import" width="100%" /> | <img src="docs/assets/data-retention-settings.png" alt="Data Retention Settings" width="100%" /> |
+| *Presets for Chase, Revolut, and Generic CSVs with blind deduplication* | *Configurable retention windows from 1 Day to 1 Year + Instant Purge* |
+
+---
+
 ## Architecture Overview
 
 ```mermaid
@@ -25,17 +50,17 @@ graph TD
     BYO["BYO Provider (OpenAI / Anthropic Claude)"]
     Firebase["Firebase Hosting (Edge Global CDN)"]
 
-    UserBrowser -->|Master Passphrase| KDF
-    KDF -->|In-Memory AES Key| WebCrypto
-    WebCrypto -->|Encrypted Blob + Blind HMAC Hash| CloudRun
-    CloudRun -->|Only Ciphertext + Metadata| Postgres
+    UserBrowser -->|"Master Passphrase"| KDF
+    KDF -->|"In-Memory AES Key"| WebCrypto
+    WebCrypto -->|"Encrypted Blob + Blind HMAC Hash"| CloudRun
+    CloudRun -->|"Only Ciphertext + Metadata"| Postgres
 
-    Firebase -->|Static SPA Assets| UserBrowser
-    LocalCategorizer -->|Decrypted Records in Memory| UserBrowser
+    Firebase -->|"Static SPA Assets"| UserBrowser
+    LocalCategorizer -->|"Decrypted Records in Memory"| UserBrowser
 
-    UserBrowser -->|Opt-in Anonymized Context| CloudRun
-    CloudRun -->|Shared Bounded Quota| Gemini
-    CloudRun -->|BYO Key (Encrypted at Rest)| BYO
+    UserBrowser -->|"Opt-in Anonymized Context"| CloudRun
+    CloudRun -->|"Shared Bounded Quota"| Gemini
+    CloudRun -->|"BYO Key Encrypted at Rest"| BYO
 ```
 
 ---
