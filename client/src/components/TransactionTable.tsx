@@ -62,16 +62,13 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   });
 
   const handleCategoryChangeClick = (tx: Transaction, newCatId: number) => {
-    // If the category didn't change, ignore
     if (tx.category_id === newCatId) {
       setEditingTxId(null);
       return;
     }
 
-    // Trigger prompt to remember rule for future imports
     setRulePromptTx(tx);
     setPendingCategoryId(newCatId);
-    // Extract a clean merchant keyword as default pattern
     const pattern = tx.description.split(/[\s*#-]/)[0].toUpperCase();
     setCustomPattern(pattern || tx.description.toUpperCase());
     setEditingTxId(null);
@@ -108,26 +105,26 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
   };
 
   return (
-    <div className="glass-card rounded-2xl overflow-hidden border border-slate-800">
+    <div className="wise-card rounded-[24px] overflow-hidden">
       {/* Table Header & Controls */}
-      <div className="p-4 sm:p-5 border-b border-slate-800 bg-slate-950/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+      <div className="p-5 border-b border-[#e8ebe6] bg-white flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
         <div>
-          <h2 className="text-base font-bold text-white tracking-tight">Transactions & Statement Records</h2>
-          <p className="text-xs text-slate-400">
-            {filtered.length} transactions displayed • Click any category to recategorize
+          <h2 className="text-base font-[900] text-[#0e0f0c] tracking-tight">Transactions & Statement Records</h2>
+          <p className="text-xs text-[#454745]">
+            {filtered.length} transactions displayed • Click any category pill to recategorize
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
           {/* Search Input */}
           <div className="relative flex-1 sm:w-60">
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-[#868685] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Search description, merchant..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-brand-500"
+              className="w-full pl-9 pr-3 py-2 bg-[#e8ebe6] border border-transparent rounded-full text-xs font-medium text-[#0e0f0c] placeholder-[#868685] focus:outline-none focus:border-[#0e0f0c]"
             />
           </div>
 
@@ -136,7 +133,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
             value={selectedAccount}
             onChange={(e) => setSelectedAccount(e.target.value)}
             aria-label="Filter by account"
-            className="px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-brand-500"
+            className="px-3 py-2 bg-[#e8ebe6] border border-transparent rounded-full text-xs font-semibold text-[#0e0f0c] focus:outline-none focus:border-[#0e0f0c]"
           >
             <option value="">All Accounts</option>
             {accounts.map((a) => (
@@ -151,7 +148,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
             aria-label="Filter by category"
-            className="px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-brand-500"
+            className="px-3 py-2 bg-[#e8ebe6] border border-transparent rounded-full text-xs font-semibold text-[#0e0f0c] focus:outline-none focus:border-[#0e0f0c]"
           >
             <option value="">All Categories</option>
             {categories.map((c) => (
@@ -166,7 +163,7 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value as any)}
             aria-label="Filter by transaction type"
-            className="px-2.5 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-300 focus:outline-none focus:border-brand-500"
+            className="px-3 py-2 bg-[#e8ebe6] border border-transparent rounded-full text-xs font-semibold text-[#0e0f0c] focus:outline-none focus:border-[#0e0f0c]"
           >
             <option value="all">All Types</option>
             <option value="debit">Expenses Only</option>
@@ -178,58 +175,58 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
       {/* Transactions Table */}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
-          <thead className="bg-slate-900/80 text-slate-400 border-b border-slate-800 uppercase tracking-wider font-semibold text-[10px]">
+          <thead className="bg-[#e8ebe6] text-[#454745] border-b border-[#e8ebe6] uppercase tracking-wider font-bold text-[11px]">
             <tr>
-              <th className="px-4 py-3">Date</th>
-              <th className="px-4 py-3">Description</th>
-              <th className="px-4 py-3">Account</th>
-              <th className="px-4 py-3">Category</th>
-              <th className="px-4 py-3 text-right">Amount</th>
-              <th className="px-4 py-3 text-center w-12">Actions</th>
+              <th className="px-5 py-3">Date</th>
+              <th className="px-5 py-3">Description</th>
+              <th className="px-5 py-3">Account</th>
+              <th className="px-5 py-3">Category</th>
+              <th className="px-5 py-3 text-right">Amount</th>
+              <th className="px-5 py-3 text-center w-12">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/40">
+          <tbody className="divide-y divide-[#e8ebe6]/80 bg-white">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center py-12 text-slate-500">
+                <td colSpan={6} className="text-center py-12 text-[#868685]">
                   No transactions match your current filters.
                 </td>
               </tr>
             ) : (
               filtered.map((tx) => (
-                <tr key={tx.id} className="hover:bg-slate-900/40 transition-colors group">
+                <tr key={tx.id} className="hover:bg-[#e8ebe6]/40 transition-colors group">
                   {/* Date */}
-                  <td className="px-4 py-3 font-mono text-slate-300 whitespace-nowrap">
+                  <td className="px-5 py-3.5 font-mono font-medium text-[#454745] whitespace-nowrap">
                     {tx.date}
                   </td>
 
                   {/* Description */}
-                  <td className="px-4 py-3 font-medium text-white max-w-xs truncate">
-                    <div className="truncate font-semibold">{tx.description}</div>
+                  <td className="px-5 py-3.5 font-semibold text-[#0e0f0c] max-w-xs truncate">
+                    <div className="truncate">{tx.description}</div>
                     {tx.original_description && tx.original_description !== tx.description && (
-                      <div className="text-[10px] text-slate-500 truncate" title={tx.original_description}>
+                      <div className="text-[10px] text-[#868685] truncate font-normal" title={tx.original_description}>
                         Raw: {tx.original_description}
                       </div>
                     )}
                   </td>
 
                   {/* Account */}
-                  <td className="px-4 py-3 text-slate-400 whitespace-nowrap">
-                    <span className="flex items-center gap-1">
-                      <Building className="w-3 h-3 text-slate-500" />
+                  <td className="px-5 py-3.5 text-[#454745] whitespace-nowrap">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <Building className="w-3.5 h-3.5 text-[#868685]" />
                       <span>{tx.account_name || 'Account'}</span>
                     </span>
                   </td>
 
-                  {/* Category (Interactive Recategorization) */}
-                  <td className="px-4 py-3 whitespace-nowrap">
+                  {/* Category (Interactive Recategorization Pill) */}
+                  <td className="px-5 py-3.5 whitespace-nowrap">
                     {editingTxId === tx.id ? (
                       <select
                         autoFocus
                         defaultValue={tx.category_id || ''}
                         onChange={(e) => handleCategoryChangeClick(tx, Number(e.target.value))}
                         onBlur={() => setEditingTxId(null)}
-                        className="px-2 py-1 bg-slate-900 border border-brand-500 rounded-lg text-xs text-white focus:outline-none"
+                        className="px-2.5 py-1 bg-white border-2 border-[#0e0f0c] rounded-full text-xs font-semibold text-[#0e0f0c] focus:outline-none"
                       >
                         {categories.map((c) => (
                           <option key={c.id} value={c.id}>
@@ -240,36 +237,36 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
                     ) : (
                       <button
                         onClick={() => setEditingTxId(tx.id)}
-                        className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-semibold bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-all text-slate-200"
+                        className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#e8ebe6] hover:bg-[#dbe0d8] transition-all text-[#0e0f0c]"
                         title="Click to recategorize"
                       >
                         <span
                           className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: tx.category_color || '#94a3b8' }}
+                          style={{ backgroundColor: tx.category_color || '#9fe870' }}
                         />
                         <span>{tx.category_name || 'Uncategorized'}</span>
-                        <Tag className="w-2.5 h-2.5 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <Tag className="w-2.5 h-2.5 text-[#868685] opacity-0 group-hover:opacity-100 transition-opacity" />
                       </button>
                     )}
                   </td>
 
                   {/* Amount */}
                   <td
-                    className={`px-4 py-3 text-right font-bold whitespace-nowrap ${
-                      tx.amount < 0 ? 'text-rose-400' : 'text-emerald-400'
+                    className={`px-5 py-3.5 text-right font-[900] text-sm whitespace-nowrap ${
+                      tx.amount < 0 ? 'text-[#a72027]' : 'text-[#054d28]'
                     }`}
                   >
                     {tx.amount < 0 ? `-${formatCurrency(Math.abs(tx.amount))}` : `+${formatCurrency(tx.amount)}`}
                   </td>
 
                   {/* Actions */}
-                  <td className="px-4 py-3 text-center whitespace-nowrap">
+                  <td className="px-5 py-3.5 text-center whitespace-nowrap">
                     <button
                       onClick={() => handleDelete(tx.id)}
                       title="Delete transaction"
-                      className="p-1 text-slate-500 hover:text-rose-400 rounded hover:bg-rose-500/10 transition-colors"
+                      className="p-1.5 text-[#868685] hover:text-[#d03238] rounded-full hover:bg-[#fce8e8] transition-colors"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </td>
                 </tr>
@@ -281,31 +278,31 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
 
       {/* Recategorization & Learning Rule Prompt Modal */}
       {rulePromptTx && pendingCategoryId !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl animate-in zoom-in-95">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0e0f0c]/50 backdrop-blur-sm">
+          <div className="bg-white rounded-[24px] w-full max-w-md p-6 space-y-4 shadow-modal border border-[#e8ebe6] animate-in zoom-in-95">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-brand-500/10 text-brand-400">
+              <div className="w-10 h-10 rounded-full bg-[#e2f6d5] text-[#054d28] flex items-center justify-center">
                 <Check className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white">Remember for Future Imports?</h3>
-                <p className="text-xs text-slate-400">
-                  Updated category to <strong>{categories.find((c) => c.id === pendingCategoryId)?.name}</strong>
+                <h3 className="text-sm font-[900] text-[#0e0f0c]">Remember for Future Imports?</h3>
+                <p className="text-xs text-[#454745]">
+                  Assigned to <strong className="text-[#0e0f0c]">{categories.find((c) => c.id === pendingCategoryId)?.name}</strong>
                 </p>
               </div>
             </div>
 
-            <div className="p-3 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2">
-              <label className="block text-[11px] font-semibold text-slate-300">
+            <div className="p-4 bg-[#e8ebe6] rounded-2xl space-y-2">
+              <label className="block text-xs font-bold text-[#0e0f0c]">
                 Matching Rule Keyword / Pattern
               </label>
               <input
                 type="text"
                 value={customPattern}
                 onChange={(e) => setCustomPattern(e.target.value)}
-                className="w-full px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white focus:outline-none focus:border-brand-500"
+                className="w-full px-3 py-2 bg-white border border-[#e8ebe6] rounded-xl text-xs font-semibold text-[#0e0f0c] focus:outline-none focus:border-[#0e0f0c]"
               />
-              <p className="text-[10px] text-slate-500">
+              <p className="text-[11px] text-[#454745]">
                 Any future imported transaction containing this keyword will automatically be assigned this category.
               </p>
             </div>
@@ -313,13 +310,13 @@ export const TransactionTable: React.FC<TransactionTableProps> = ({
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 onClick={() => handleConfirmRecategorization(false)}
-                className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 rounded-xl transition-all"
+                className="px-4 py-2 bg-[#e8ebe6] hover:bg-[#dbe0d8] text-xs font-semibold text-[#0e0f0c] rounded-full transition-all"
               >
                 Only this transaction
               </button>
               <button
                 onClick={() => handleConfirmRecategorization(true)}
-                className="px-4 py-1.5 bg-brand-500 hover:bg-brand-400 text-xs font-bold text-slate-950 rounded-xl shadow-lg glow-brand transition-all"
+                className="px-5 py-2 bg-[#9fe870] hover:bg-[#cdffad] text-xs font-bold text-[#0e0f0c] rounded-full shadow-sm transition-all"
               >
                 Remember Rule & Apply
               </button>

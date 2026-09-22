@@ -64,44 +64,44 @@ export const BudgetModal: React.FC<BudgetModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl animate-in zoom-in-95">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-brand-500/10 text-brand-400">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0e0f0c]/50 backdrop-blur-sm">
+      <div className="bg-white border border-[#e8ebe6] rounded-[24px] w-full max-w-xl overflow-hidden shadow-modal animate-in zoom-in-95">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-[#e8ebe6]">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#9fe870] flex items-center justify-center text-[#0e0f0c]">
               <PieChart className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">Monthly Category Budgets</h2>
-              <p className="text-xs text-slate-400">Set target spending limits for {period}</p>
+              <h2 className="text-base font-[900] text-[#0e0f0c]">Monthly Category Budgets</h2>
+              <p className="text-xs text-[#454745]">Set target spending limits for {period}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800">
+          <button onClick={onClose} className="p-2 text-[#868685] hover:text-[#0e0f0c] rounded-full hover:bg-[#e8ebe6]">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSave} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
           {success && (
-            <div className="p-3 bg-emerald-950/60 border border-emerald-800/80 rounded-xl text-xs text-emerald-300 flex items-center gap-2">
+            <div className="p-3.5 bg-[#e2f6d5] border border-[#2ead4b]/30 rounded-2xl text-xs text-[#054d28] font-bold flex items-center gap-2">
               <Check className="w-4 h-4" />
               <span>Budgets saved successfully!</span>
             </div>
           )}
 
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {categories.map((cat) => (
               <div
                 key={cat.id}
-                className="flex items-center justify-between p-3 bg-slate-950/50 border border-slate-800 rounded-xl"
+                className="flex items-center justify-between p-3.5 bg-[#e8ebe6]/40 border border-[#e8ebe6] rounded-2xl"
               >
                 <div className="flex items-center gap-2.5">
                   <span className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
-                  <span className="text-xs font-semibold text-white">{cat.name}</span>
+                  <span className="text-xs font-bold text-[#0e0f0c]">{cat.name}</span>
                 </div>
 
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-slate-400">$</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-[#868685]">$</span>
                   <input
                     type="number"
                     step="10"
@@ -110,25 +110,25 @@ export const BudgetModal: React.FC<BudgetModalProps> = ({
                     onChange={(e) =>
                       setBudgetValues({ ...budgetValues, [cat.id]: e.target.value })
                     }
-                    className="w-28 px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg text-xs font-bold text-white focus:outline-none focus:border-brand-500 text-right"
+                    className="w-32 px-3 py-1.5 bg-white border border-[#e8ebe6] rounded-xl text-xs font-[900] text-[#0e0f0c] focus:outline-none focus:border-[#0e0f0c] text-right"
                   />
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+          <div className="flex items-center justify-between pt-4 border-t border-[#e8ebe6]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-semibold text-slate-400 hover:text-white"
+              className="px-5 py-2 text-xs font-bold text-[#454745] hover:text-[#0e0f0c]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="px-5 py-2 bg-brand-500 hover:bg-brand-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg glow-brand transition-all"
+              className="px-6 py-2.5 bg-[#9fe870] hover:bg-[#cdffad] text-[#0e0f0c] font-bold text-xs rounded-full shadow-sm transition-all"
             >
               {saving ? 'Saving...' : 'Save Budgets'}
             </button>

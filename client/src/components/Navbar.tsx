@@ -40,7 +40,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   activeTab,
   setActiveTab,
 }) => {
-  // Available periods (last 6 months)
   const periods = [
     { value: '2026-09', label: 'Sep 2026' },
     { value: '2026-08', label: 'Aug 2026' },
@@ -50,36 +49,34 @@ export const Navbar: React.FC<NavbarProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 w-full border-b border-[#e8ebe6] bg-white/95 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           {/* Logo & Brand */}
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 p-0.5 glow-brand flex items-center justify-center shadow-lg">
-                <div className="w-full h-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                  <Wallet className="w-5 h-5 text-brand-400" />
-                </div>
+              <div className="w-10 h-10 rounded-full bg-[#9fe870] flex items-center justify-center text-[#0e0f0c] shadow-sm">
+                <Wallet className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+                <span className="text-xl font-[900] tracking-tight text-[#0e0f0c]">
                   FinTrack
                 </span>
-                <span className="hidden sm:inline-block ml-2 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-400 bg-brand-950/80 border border-brand-800/50 rounded">
-                  v1.0
+                <span className="hidden sm:inline-block ml-2 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-[#054d28] bg-[#e2f6d5] rounded-full">
+                  Wise System
                 </span>
               </div>
             </div>
 
-            {/* Nav Tabs */}
-            <nav className="hidden md:flex items-center gap-1 bg-slate-900/60 border border-slate-800/80 p-1 rounded-xl">
+            {/* Nav Tabs (Scandinavian fintech pill style) */}
+            <nav className="hidden md:flex items-center gap-1 bg-[#e8ebe6] p-1 rounded-full">
               <button
                 id="nav-tab-dashboard"
                 onClick={() => setActiveTab('dashboard')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   activeTab === 'dashboard'
-                    ? 'bg-brand-500 text-slate-950 shadow-md font-bold'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                    ? 'bg-white text-[#0e0f0c] shadow-sm font-bold'
+                    : 'text-[#454745] hover:text-[#0e0f0c]'
                 }`}
               >
                 Dashboard
@@ -87,10 +84,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 id="nav-tab-transactions"
                 onClick={() => setActiveTab('transactions')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   activeTab === 'transactions'
-                    ? 'bg-brand-500 text-slate-950 shadow-md font-bold'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                    ? 'bg-white text-[#0e0f0c] shadow-sm font-bold'
+                    : 'text-[#454745] hover:text-[#0e0f0c]'
                 }`}
               >
                 Transactions
@@ -98,10 +95,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 id="nav-tab-subscriptions"
                 onClick={() => setActiveTab('subscriptions')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
                   activeTab === 'subscriptions'
-                    ? 'bg-brand-500 text-slate-950 shadow-md font-bold'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-800/50'
+                    ? 'bg-white text-[#0e0f0c] shadow-sm font-bold'
+                    : 'text-[#454745] hover:text-[#0e0f0c]'
                 }`}
               >
                 Subscriptions
@@ -113,13 +110,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center gap-2.5">
             {/* Account Selector */}
             <div className="relative flex items-center">
-              <Building className="w-4 h-4 text-slate-400 absolute left-2.5 pointer-events-none" />
+              <Building className="w-4 h-4 text-[#454745] absolute left-3 pointer-events-none" />
               <select
                 id="account-selector"
                 value={selectedAccountId}
                 onChange={(e) => onSelectAccount(e.target.value)}
                 aria-label="Filter by account"
-                className="pl-8 pr-8 py-1.5 bg-slate-900/80 border border-slate-800 rounded-xl text-xs font-medium text-slate-200 focus:outline-none focus:border-brand-500 appearance-none cursor-pointer hover:bg-slate-800/50 transition-colors"
+                className="pl-8 pr-7 py-2 bg-[#e8ebe6] border border-transparent rounded-full text-xs font-semibold text-[#0e0f0c] focus:outline-none focus:border-[#0e0f0c] appearance-none cursor-pointer hover:bg-[#dbe0d8] transition-colors"
               >
                 <option value="">All Accounts</option>
                 {accounts.map((acc) => (
@@ -132,13 +129,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Period Selector */}
             <div className="relative hidden sm:flex items-center">
-              <Calendar className="w-4 h-4 text-slate-400 absolute left-2.5 pointer-events-none" />
+              <Calendar className="w-4 h-4 text-[#454745] absolute left-3 pointer-events-none" />
               <select
                 id="period-selector"
                 value={selectedPeriod}
                 onChange={(e) => onSelectPeriod(e.target.value)}
                 aria-label="Filter by statement period"
-                className="pl-8 pr-8 py-1.5 bg-slate-900/80 border border-slate-800 rounded-xl text-xs font-medium text-slate-200 focus:outline-none focus:border-brand-500 appearance-none cursor-pointer hover:bg-slate-800/50 transition-colors"
+                className="pl-8 pr-7 py-2 bg-[#e8ebe6] border border-transparent rounded-full text-xs font-semibold text-[#0e0f0c] focus:outline-none focus:border-[#0e0f0c] appearance-none cursor-pointer hover:bg-[#dbe0d8] transition-colors"
               >
                 {periods.map((p) => (
                   <option key={p.value} value={p.value}>
@@ -148,13 +145,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               </select>
             </div>
 
-            {/* Action Buttons */}
+            {/* Primary Action Button: Wise Green CTA Pill */}
             <button
               id="btn-open-upload"
               onClick={onOpenUpload}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-500 hover:bg-brand-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg glow-brand transition-all active:scale-95"
+              className="flex items-center gap-1.5 px-4 py-2 bg-[#9fe870] hover:bg-[#cdffad] text-[#0e0f0c] font-bold text-xs rounded-full shadow-sm active:scale-95 transition-all"
             >
-              <Upload className="w-3.5 h-3.5" />
+              <Upload className="w-3.5 h-3.5 text-[#0e0f0c]" />
               <span>Import CSV</span>
             </button>
 
@@ -162,9 +159,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               id="btn-open-budgets"
               onClick={onOpenBudgets}
               title="Budgets"
-              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-medium rounded-xl transition-all"
+              className="hidden lg:flex items-center gap-1.5 px-3.5 py-2 bg-[#e8ebe6] hover:bg-[#dbe0d8] text-[#0e0f0c] text-xs font-semibold rounded-full transition-all"
             >
-              <PieChart className="w-3.5 h-3.5 text-brand-400" />
+              <PieChart className="w-3.5 h-3.5 text-[#0e0f0c]" />
               <span>Budgets</span>
             </button>
 
@@ -172,9 +169,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               id="btn-open-rules"
               onClick={onOpenRules}
               title="Auto-Categorization Rules"
-              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-medium rounded-xl transition-all"
+              className="hidden lg:flex items-center gap-1.5 px-3.5 py-2 bg-[#e8ebe6] hover:bg-[#dbe0d8] text-[#0e0f0c] text-xs font-semibold rounded-full transition-all"
             >
-              <Sliders className="w-3.5 h-3.5 text-blue-400" />
+              <Sliders className="w-3.5 h-3.5 text-[#0e0f0c]" />
               <span>Rules</span>
             </button>
 
@@ -182,19 +179,19 @@ export const Navbar: React.FC<NavbarProps> = ({
               id="btn-open-add-account"
               onClick={onOpenNewAccount}
               title="Add Account"
-              className="p-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white rounded-xl transition-all"
+              className="p-2 bg-[#e8ebe6] hover:bg-[#dbe0d8] text-[#0e0f0c] rounded-full transition-all"
             >
               <Plus className="w-4 h-4" />
             </button>
 
-            {/* User Profile / Status */}
-            <div className="flex items-center gap-2 pl-2 border-l border-slate-800">
-              <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-xs font-semibold text-brand-400">
+            {/* User Profile */}
+            <div className="flex items-center gap-2 pl-2 border-l border-[#e8ebe6]">
+              <div className="w-8 h-8 rounded-full bg-[#e8ebe6] flex items-center justify-center text-xs font-bold text-[#0e0f0c]">
                 <UserIcon className="w-4 h-4" />
               </div>
               <div className="hidden xl:block text-left">
-                <div className="text-xs font-semibold text-slate-200">{user?.name || 'Demo User'}</div>
-                <div className="text-[10px] text-slate-500">Active Workspace</div>
+                <div className="text-xs font-bold text-[#0e0f0c]">{user?.name || 'Demo User'}</div>
+                <div className="text-[10px] text-[#868685]">FinTrack Workspace</div>
               </div>
             </div>
           </div>

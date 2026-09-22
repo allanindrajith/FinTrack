@@ -4,31 +4,62 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        brand: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',
-          800: '#166534',
-          900: '#14532d',
-          950: '#052e16',
+        wise: {
+          DEFAULT: '#9fe870',
+          active: '#cdffad',
+          neutral: '#c5edab',
+          pale: '#e2f6d5',
         },
-        navy: {
-          800: '#1e293b',
-          900: '#0f172a',
-          950: '#020617',
-        }
+        ink: {
+          DEFAULT: '#0e0f0c',
+          deep: '#163300',
+        },
+        body: '#454745',
+        mute: '#868685',
+        canvas: {
+          DEFAULT: '#ffffff',
+          soft: '#e8ebe6',
+        },
+        positive: {
+          DEFAULT: '#2ead4b',
+          deep: '#054d28',
+        },
+        warning: {
+          DEFAULT: '#ffd11a',
+          deep: '#b86700',
+          content: '#4a3b1c',
+        },
+        negative: {
+          DEFAULT: '#d03238',
+          deep: '#a72027',
+          darkest: '#a7000d',
+          bg: '#fce8e8',
+        },
+        accent: {
+          orange: '#ffc091',
+          cyan: '#38c8ff',
+        },
+      },
+      borderRadius: {
+        'sm': '8px',
+        'md': '12px',
+        'lg': '16px',
+        'xl': '24px',
+        '2xl': '24px',
+        '3xl': '24px',
+        'pill': '9999px',
+        'full': '9999px',
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+      },
+      boxShadow: {
+        'card': '0 2px 8px -2px rgba(14, 15, 12, 0.05), 0 1px 4px -1px rgba(14, 15, 12, 0.03)',
+        'card-hover': '0 8px 24px -4px rgba(14, 15, 12, 0.08), 0 2px 6px -1px rgba(14, 15, 12, 0.04)',
+        'modal': '0 20px 48px -12px rgba(14, 15, 12, 0.18)',
       },
     },
   },

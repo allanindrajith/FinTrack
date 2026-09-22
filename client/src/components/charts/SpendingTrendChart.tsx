@@ -25,7 +25,6 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({ data }) 
   };
 
   const formatPeriodLabel = (period: string) => {
-    // Convert "2026-09" to "Sep 26"
     if (!period) return '';
     const [year, month] = period.split('-');
     const date = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1);
@@ -34,28 +33,28 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({ data }) 
 
   if (!data || data.length === 0) {
     return (
-      <div className="glass-card p-6 rounded-2xl flex flex-col items-center justify-center h-[400px] text-center">
-        <div className="text-sm font-semibold text-slate-300">No Historical Trends Yet</div>
-        <div className="text-xs text-slate-500 mt-1">Import multiple statements over time to see monthly trends.</div>
+      <div className="wise-card p-6 rounded-[24px] flex flex-col items-center justify-center h-[400px] text-center">
+        <div className="text-sm font-bold text-[#0e0f0c]">No Historical Trends Yet</div>
+        <div className="text-xs text-[#868685] mt-1">Import multiple statements over time to see monthly trends.</div>
       </div>
     );
   }
 
   return (
-    <div className="glass-card p-6 rounded-2xl flex flex-col h-[400px]">
+    <div className="wise-card p-6 rounded-[24px] flex flex-col h-[400px]">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-base font-bold text-white tracking-tight">Spending & Income Trends</h2>
-          <p className="text-xs text-slate-400">Multi-month cash flow trajectory</p>
+          <h2 className="text-base font-[900] text-[#0e0f0c] tracking-tight">Spending & Income Trends</h2>
+          <p className="text-xs text-[#454745]">Multi-month cash flow trajectory</p>
         </div>
-        <div className="flex items-center gap-4 text-xs">
+        <div className="flex items-center gap-4 text-xs font-semibold">
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-brand-500" />
-            <span className="text-slate-300 font-medium">Income</span>
+            <span className="w-3 h-3 rounded-full bg-[#2ead4b]" />
+            <span className="text-[#0e0f0c]">Income</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-rose-500" />
-            <span className="text-slate-300 font-medium">Expenses</span>
+            <span className="w-3 h-3 rounded-full bg-[#d03238]" />
+            <span className="text-[#0e0f0c]">Expenses</span>
           </div>
         </div>
       </div>
@@ -65,28 +64,28 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({ data }) 
           <AreaChart data={data} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
             <defs>
               <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#22c55e" stopOpacity={0.4} />
-                <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                <stop offset="5%" stopColor="#2ead4b" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#2ead4b" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.4} />
-                <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
+                <stop offset="5%" stopColor="#d03238" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#d03238" stopOpacity={0} />
               </linearGradient>
             </defs>
 
-            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e8ebe6" vertical={false} />
 
             <XAxis
               dataKey="period"
               tickFormatter={formatPeriodLabel}
-              stroke="#64748b"
+              stroke="#868685"
               fontSize={11}
               tickLine={false}
               axisLine={false}
             />
 
             <YAxis
-              stroke="#64748b"
+              stroke="#868685"
               fontSize={11}
               tickLine={false}
               axisLine={false}
@@ -98,22 +97,22 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({ data }) 
                 if (active && payload && payload.length) {
                   const item = payload[0].payload as TrendItem;
                   return (
-                    <div className="bg-slate-900/95 border border-slate-700/80 p-3 rounded-xl shadow-xl backdrop-blur-md">
-                      <div className="text-xs font-bold text-slate-300 mb-2">
+                    <div className="bg-white border border-[#e8ebe6] p-3 rounded-2xl shadow-xl">
+                      <div className="text-xs font-bold text-[#0e0f0c] mb-2">
                         {formatPeriodLabel(item.period)}
                       </div>
                       <div className="space-y-1 text-xs">
                         <div className="flex items-center justify-between gap-4">
-                          <span className="text-brand-400 font-medium">Income:</span>
-                          <span className="font-bold text-white">{formatCurrency(item.income)}</span>
+                          <span className="text-[#054d28] font-semibold">Income:</span>
+                          <span className="font-[900] text-[#0e0f0c]">{formatCurrency(item.income)}</span>
                         </div>
                         <div className="flex items-center justify-between gap-4">
-                          <span className="text-rose-400 font-medium">Expenses:</span>
-                          <span className="font-bold text-white">{formatCurrency(item.expenses)}</span>
+                          <span className="text-[#a72027] font-semibold">Expenses:</span>
+                          <span className="font-[900] text-[#0e0f0c]">{formatCurrency(item.expenses)}</span>
                         </div>
-                        <div className="flex items-center justify-between gap-4 pt-1 border-t border-slate-800 font-bold">
-                          <span className="text-slate-400">Net Savings:</span>
-                          <span className={item.net >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
+                        <div className="flex items-center justify-between gap-4 pt-1.5 border-t border-[#e8ebe6] font-bold">
+                          <span className="text-[#454745]">Net Savings:</span>
+                          <span className={item.net >= 0 ? 'text-[#054d28]' : 'text-[#a72027]'}>
                             {formatCurrency(item.net)}
                           </span>
                         </div>
@@ -128,7 +127,7 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({ data }) 
             <Area
               type="monotone"
               dataKey="income"
-              stroke="#22c55e"
+              stroke="#2ead4b"
               strokeWidth={2.5}
               fillOpacity={1}
               fill="url(#incomeGradient)"
@@ -137,7 +136,7 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({ data }) 
             <Area
               type="monotone"
               dataKey="expenses"
-              stroke="#f43f5e"
+              stroke="#d03238"
               strokeWidth={2.5}
               fillOpacity={1}
               fill="url(#expenseGradient)"

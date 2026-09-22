@@ -36,102 +36,97 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
       {/* 1. Net Cash Flow */}
-      <div className="glass-card glass-card-hover p-5 rounded-2xl relative overflow-hidden group">
+      <div className="wise-card wise-card-hover p-6 rounded-[24px] relative overflow-hidden">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Net Cash Flow</span>
-          <div className={`p-2 rounded-xl ${netSavings >= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+          <span className="text-xs font-bold uppercase tracking-wider text-[#868685]">Net Cash Flow</span>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${netSavings >= 0 ? 'bg-[#e2f6d5] text-[#054d28]' : 'bg-[#fce8e8] text-[#a72027]'}`}>
             {netSavings >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
           </div>
         </div>
-        <div className="mt-3">
-          <div className={`text-2xl font-black tracking-tight ${netSavings >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+        <div className="mt-4">
+          <div className={`text-2xl font-[900] tracking-tight ${netSavings >= 0 ? 'text-[#054d28]' : 'text-[#a72027]'}`}>
             {netSavings >= 0 ? `+${formatCurrency(netSavings)}` : formatCurrency(netSavings)}
           </div>
-          <div className="mt-1 text-xs text-slate-400 flex items-center gap-1">
+          <div className="mt-1 text-xs text-[#454745] flex items-center gap-1.5 font-medium">
             <span>Income vs Expenses</span>
-            <span className={`font-semibold ${netSavings >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-              ({netSavings >= 0 ? 'Surplus' : 'Deficit'})
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${netSavings >= 0 ? 'bg-[#e2f6d5] text-[#054d28]' : 'bg-[#fce8e8] text-[#a72027]'}`}>
+              {netSavings >= 0 ? 'Surplus' : 'Deficit'}
             </span>
           </div>
         </div>
-        <div className={`absolute bottom-0 left-0 right-0 h-1 ${netSavings >= 0 ? 'bg-gradient-to-r from-emerald-500 to-teal-400' : 'bg-gradient-to-r from-rose-500 to-red-400'}`} />
       </div>
 
       {/* 2. Total Income */}
-      <div className="glass-card glass-card-hover p-5 rounded-2xl relative overflow-hidden group">
+      <div className="wise-card wise-card-hover p-6 rounded-[24px] relative overflow-hidden">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Income</span>
-          <div className="p-2 rounded-xl bg-brand-500/10 text-brand-400">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#868685]">Total Income</span>
+          <div className="w-8 h-8 rounded-full bg-[#e2f6d5] text-[#054d28] flex items-center justify-center">
             <ArrowUpRight className="w-4 h-4" />
           </div>
         </div>
-        <div className="mt-3">
-          <div className="text-2xl font-black tracking-tight text-white">
+        <div className="mt-4">
+          <div className="text-2xl font-[900] tracking-tight text-[#0e0f0c]">
             {formatCurrency(income)}
           </div>
-          <div className="mt-1 text-xs text-slate-400">
+          <div className="mt-1 text-xs text-[#454745] font-medium">
             Deposits & Salary
           </div>
         </div>
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-brand-500 to-emerald-400" />
       </div>
 
       {/* 3. Total Expenses */}
-      <div className="glass-card glass-card-hover p-5 rounded-2xl relative overflow-hidden group">
+      <div className="wise-card wise-card-hover p-6 rounded-[24px] relative overflow-hidden">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Expenses</span>
-          <div className="p-2 rounded-xl bg-rose-500/10 text-rose-400">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#868685]">Total Expenses</span>
+          <div className="w-8 h-8 rounded-full bg-[#fce8e8] text-[#a72027] flex items-center justify-center">
             <ArrowDownRight className="w-4 h-4" />
           </div>
         </div>
-        <div className="mt-3">
-          <div className="text-2xl font-black tracking-tight text-white">
+        <div className="mt-4">
+          <div className="text-2xl font-[900] tracking-tight text-[#0e0f0c]">
             {formatCurrency(expenses)}
           </div>
-          <div className="mt-1 text-xs text-slate-400">
+          <div className="mt-1 text-xs text-[#454745] font-medium">
             Outflow this period
           </div>
         </div>
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 to-pink-500" />
       </div>
 
       {/* 4. Savings Rate */}
-      <div className="glass-card glass-card-hover p-5 rounded-2xl relative overflow-hidden group">
+      <div className="wise-card wise-card-hover p-6 rounded-[24px] relative overflow-hidden">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Savings Rate</span>
-          <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#868685]">Savings Rate</span>
+          <div className="w-8 h-8 rounded-full bg-[#e8ebe6] text-[#0e0f0c] flex items-center justify-center">
             <Percent className="w-4 h-4" />
           </div>
         </div>
-        <div className="mt-3">
-          <div className="text-2xl font-black tracking-tight text-blue-400">
+        <div className="mt-4">
+          <div className="text-2xl font-[900] tracking-tight text-[#0e0f0c]">
             {savingsRate}%
           </div>
-          <div className="mt-1 text-xs text-slate-400">
+          <div className="mt-1 text-xs text-[#454745] font-medium">
             {savingsRate >= 20 ? 'Target achieved (≥20%)' : 'Below target'}
           </div>
         </div>
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500" />
       </div>
 
       {/* 5. Subscriptions Burn */}
-      <div className="glass-card glass-card-hover p-5 rounded-2xl relative overflow-hidden group">
+      <div className="wise-card wise-card-hover p-6 rounded-[24px] relative overflow-hidden">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Subscriptions</span>
-          <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400">
+          <span className="text-xs font-bold uppercase tracking-wider text-[#868685]">Subscriptions</span>
+          <div className="w-8 h-8 rounded-full bg-[#f5e8fc] text-[#6b21a8] flex items-center justify-center">
             <RefreshCw className="w-4 h-4" />
           </div>
         </div>
-        <div className="mt-3">
-          <div className="text-2xl font-black tracking-tight text-purple-400">
+        <div className="mt-4">
+          <div className="text-2xl font-[900] tracking-tight text-[#0e0f0c]">
             {formatCurrency(subscriptionMonthlyTotal)}
-            <span className="text-xs text-slate-400 font-normal ml-1">/mo</span>
+            <span className="text-xs text-[#868685] font-normal ml-1">/mo</span>
           </div>
-          <div className="mt-1 text-xs text-slate-400">
+          <div className="mt-1 text-xs text-[#454745] font-medium">
             {subscriptionCount} active detected
           </div>
         </div>
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-violet-500" />
       </div>
     </div>
   );
