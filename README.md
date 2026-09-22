@@ -1,132 +1,262 @@
-# FinTrack — Intelligent Personal Finance Tracker
+# FinTrack — Production-Ready Personal Finance Tracker
 
-FinTrack is an intelligent personal finance tracker designed to tackle the messiness of real-world bank and credit card CSV exports. It features automated format detection, robust normalization (dates, currencies, sign polarity, deduplication), rule-based auto-categorization with user learning, recurring subscription detection, and interactive visual analytics.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
+[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)]()
+[![Target: Google Cloud Run](https://img.shields.io/badge/target-Cloud%20Run-4285F4.svg)]()
+[![Target: Firebase Hosting](https://img.shields.io/badge/frontend-Firebase%20Hosting-FFCA28.svg)]()
 
-![FinTrack Dashboard](client/public/screenshot-dashboard.png)
-
----
-
-## 🌟 Key Features
-
-### 1. Robust CSV Parsing & Statement Normalization
-- **Bank Format Auto-Detection**:
-  - **Chase Bank (US)**: Supports Chase Credit Card (negative purchase amounts, positive payments) and Chase Checking/Savings.
-  - **Revolut (EU/UK/Global)**: Handles ISO timestamp formats (`YYYY-MM-DD HH:mm:ss`), EUR/GBP currency amounts, fee columns, and card payments.
-  - **Generic Statements**: Auto-detects single `Amount` columns or separate `Debit` and `Credit` columns with high confidence.
-  - **Interactive Column Mapper**: Fallback visual column mapper allowing manual assignment of Date, Description, Amount, Debit, Credit, and Type columns.
-- **Handling Messy Real-World Data**:
-  - **Date Normalization**: Automatically parses `YYYY-MM-DD`, `MM/DD/YYYY` (US), `DD/MM/YYYY` (EU), `DD.MM.YYYY` (German/EU dot delimiter), text months (`15 Jan 2026`), and ISO timestamps.
-  - **Amount & Currency Cleaning**: Strips symbols (`$`, `€`, `£`, `₹`), handles European decimal formats (`1.234,56`), parenthesized negatives `(150.00)` $\rightarrow$ `-150.00`, trailing minuses `45.99-`, and `CR` / `DR` suffixes.
-  - **Cryptographic Deduplication**: Generates deterministic SHA-256 fingerprints `hash(accountId, date, cleanDescription, amountCents)` to avoid duplicate entries on re-importing overlapping statement files.
-
-### 2. Auto-Categorization & Machine Learning Rules
-- **High-Precision Rule Engine**: Automatically matches merchant descriptions against keyword & regex patterns (Groceries, Dining, Transport, Subscriptions, Utilities, Shopping, Income, etc.).
-- **User Learning & "Remember Corrections"**: When a user updates a category, FinTrack prompts to save a persistent custom rule that retroactively updates similar transactions and applies to all future CSV imports.
-- **Multi-Account Support**: Track statements across checking accounts, credit cards, and multi-currency wallets.
-
-### 3. Analytics, Subscriptions & Budgeting
-- **Monthly Net Cash Flow & Savings Rate**: Track Income vs. Expenses, net surplus/deficit, and savings rate percentage.
-- **Category Spending Donut Chart**: Interactive Recharts visualization showing proportion and transaction volume per category.
-- **Spending Trends Timeline**: Multi-month Area chart illustrating cash flow trajectory over time.
-- **Recurring Subscription Detector**: Identifies monthly charges recurring at ~30-day intervals with consistent amounts (Netflix, Spotify, Gym, Utilities) and projects monthly burn and annual renewals.
-- **Budget vs. Actual**: Set category spending limits and monitor utilization with green/amber/red status alerts.
+**FinTrack** is an enterprise-grade, end-to-end encrypted personal finance dashboard. It features **zero-knowledge client-side encryption**, multi-bank CSV normalization, automated recurring subscription tracking, customizable retention purges, and a dual-tier AI financial assistant (**Google Gemini 2.5 Flash** default with BYO-key support for OpenAI and Anthropic Claude).
 
 ---
 
-## 🛠️ Tech Stack
+## Architecture Overview
 
-- **Frontend**: React 18, TypeScript, Tailwind CSS, Recharts, Lucide Icons, Vite
-- **Backend**: Node.js, Express, TypeScript, PapaParse
-- **Database**: SQLite with native `node:sqlite` (zero external C++ compilation dependencies, lightning-fast performance)
-- **Authentication**: JWT authentication with bcrypt password hashing + Demo Mode for quick exploration
-- **Testing**: Vitest with unit tests for date parsing, currency formatting, debit/credit polarity, and deduplication
+```mermaid
+graph TD
+    UserBrowser["User Browser (Client SPA)"]
+    KDF["PBKDF2 (600,000 rounds)"]
+    WebCrypto["WebCrypto API (AES-256-GCM)"]
+    LocalCategorizer["Client Categorizer & Aggregator"]
+    
+    CloudRun["Google Cloud Run (Node.js/Express Container)"]
+    Postgres["PostgreSQL (Cloud SQL / Supabase / Neon)"]
+    Gemini["Google Gemini 2.5 Flash (Default Tier)"]
+    BYO["BYO Provider (OpenAI / Anthropic Claude)"]
+    Firebase["Firebase Hosting (Edge Global CDN)"]
+
+    UserBrowser -->|Master Passphrase| KDF
+    KDF -->|In-Memory AES Key| WebCrypto
+    WebCrypto -->|Encrypted Blob + Blind HMAC Hash| CloudRun
+    CloudRun -->|Only Ciphertext + Metadata| Postgres
+
+    Firebase -->|Static SPA Assets| UserBrowser
+    LocalCategorizer -->|Decrypted Records in Memory| UserBrowser
+
+    UserBrowser -->|Opt-in Anonymized Context| CloudRun
+    CloudRun -->|Shared Bounded Quota| Gemini
+    CloudRun -->|BYO Key (Encrypted at Rest)| BYO
+```
 
 ---
 
-## 🚀 Getting Started
+## 1. Zero-Knowledge Client-Side Encryption Model
+
+FinTrack is built from the ground up on a strict **Zero-Knowledge Privacy Architecture**:
+
+1. **Client-Side Key Derivation**: When a user registers or logs in, their password or master passphrase derives a 256-bit cryptographic key entirely inside the browser using **PBKDF2** with **600,000 iterations** of SHA-256 (in adherence to OWASP recommendations).
+2. **AES-256-GCM**: Before any financial statement record (description, amount, category, memo) leaves the client, it is encrypted via the browser's hardware-accelerated `window.crypto.subtle` API. The payload is packaged as an authenticated `${iv_base64}:${ciphertext_base64}` bundle.
+3. **Blind HMAC-SHA256 Deduplication**: To prevent users from uploading the same bank statement lines multiple times, the client calculates a deterministic HMAC-SHA256 signature using a derived authentication key:
+   $$\text{Hash} = \text{HMAC-SHA256}(K_{\text{auth}}, \text{date} \parallel \text{amount} \parallel \text{normalized\_description})$$
+   The server compares hashes to filter duplicates **without ever knowing the plaintext amount or description**.
+4. **Server Isolation**: The server database stores only `id`, `user_id`, `account_id`, `date`, `encrypted_blob`, and `hash`. Even in the event of a full database leak, user balances, transactions, and merchants cannot be decrypted by anyone without the user's master password.
+
+### Architectural Trade-Offs & AI Consent
+- **Client-Side Compute**: Because the server never sees plaintext figures, all transaction categorization, monthly budget reconciliation, cash flow summaries, and trend charts run **locally in the browser** after decrypting records into memory.
+- **Opt-In AI Consent**: Sending financial data to an AI model inherently breaks end-to-end encryption in transit to that third party. For this reason:
+  - AI features are **strictly opt-in (off by default)**.
+  - Users must explicitly check the AI Consent toggle in Settings ("AI Insights will send transaction data to Google's Gemini API — off by default, opt-in").
+  - Only anonymized category summaries necessary for the prompt are dispatched.
+
+---
+
+## 2. Authentication & Session Security
+
+- **Google OAuth 2.0**: Native sign-in option for frictionless onboarding.
+- **Apple Sign-In**: Dedicated support for Apple ID and iCloud keychain users.
+- **Email + Password Fallback**:
+  - Securely hashed with `bcrypt` (12 salt rounds) or Argon2id. Never stored plaintext or reversible.
+  - Email verification token flow before full activation.
+  - Time-limited password reset tokens (`/api/auth/forgot-password` and `/api/auth/reset-password`).
+- **Session Management**: Dual-mode session handling supporting secure, `httpOnly`, `SameSite=Lax/None`, signed cookies (`fintrack_session`) and short-lived JWT authorization headers.
+- **Brute-Force Rate Limiting**: In-memory IP window rate limiting on all `/api/auth/*` routes (maximum 30 attempts per 15-minute window).
+
+---
+
+## 3. Data Retention & Deletion Lifecycle
+
+- **Configurable Retention Horizons**: Users can configure automated purging in Settings:
+  - `1 day` (ephemeral statement inspection)
+  - `7 days`
+  - `1 month`
+  - `3 months`
+  - `1 year`
+  - `Custom cutoff date` (date picker)
+  - `Never` (retained until manual deletion)
+- **Background Purge Worker**: A scheduled task runs periodically (or via Google Cloud Scheduler hitting `POST /api/jobs/cleanup` with `CRON_SECRET`) to delete expired records.
+- **Manual Data Deletion ("Delete My Data")**:
+  - Sets `deleted_at = NOW()` immediately hiding records from the user's view.
+  - Automatically hard-purged (permanently erased from the physical database) within 24–48 hours.
+- **Cascade Account Deletion**: Deleting the account cascades across all accounts, transactions, custom rules, budgets, and AI conversation histories.
+- **Privacy Audit Logs**: Deletion and security events are logged with timestamp and action code only (`user_id`, `event_type`, `records_deleted`, `created_at` — zero financial data stored in audit logs).
+
+---
+
+## 4. Dual-Tier AI Integration (Gemini + BYO-Key)
+
+- **Default Tier (Google Gemini 2.5 Flash)**:
+  - Fast, cost-efficient natural language spending Q&A ("how much did I spend on food last month?"), spending summaries, and auto-categorizing transactions.
+  - Configurable via `GEMINI_MODEL` env var (supports `gemini-2.5-flash`, `gemini-1.5-flash`, `gemini-1.5-pro`).
+  - Built-in per-user free quota (e.g. 20 queries/day) so costs remain bounded.
+- **BYO-Key Support (Bring Your Own Key)**:
+  - Connect your own API key for **Google Gemini**, **OpenAI (`gpt-4o-mini`)**, or **Anthropic (`claude-3-5-haiku`)**.
+  - BYO keys bypass shared quotas with higher/unlimited queries directly through the user's provider account.
+  - Keys are stored **AES-256 encrypted at rest** in the database using a server-side encryption secret, never logged, and dispatched only to the respective provider's HTTPS endpoint.
+  - Provider selector lets users choose which connected AI model processes their prompts.
+
+---
+
+## 5. Technology Stack
+
+| Layer | Technologies |
+|---|---|
+| **Frontend** | React 18, TypeScript, Tailwind CSS, Vite, Lucide Icons, WebCrypto API (AES-256-GCM + PBKDF2) |
+| **Backend** | Node.js 22, Express, TypeScript, pg (PostgreSQL), cookie-parser, multer, bcryptjs |
+| **Database** | PostgreSQL (Google Cloud SQL, Supabase, Neon) with SQLite fallback for local offline testing |
+| **Container** | Hardened multi-stage Docker (`node:22-alpine`, non-root user `fintrack`, port 8080) |
+| **Cloud Target**| Google Cloud Run (Backend Container) + Firebase Hosting (Frontend Static CDN) |
+| **AI Providers** | Google Gemini 2.5 Flash (default), OpenAI gpt-4o-mini, Anthropic claude-3-5-haiku |
+
+---
+
+## 6. Local Development Setup
 
 ### Prerequisites
-- Node.js v20+ (Node v22+ recommended for native `node:sqlite`)
-- npm v10+
+- Node.js 22+ and npm
+- (Optional) Docker or local PostgreSQL instance
 
-### Installation
+### Quick Start
+```bash
+# 1. Clone the repository
+git clone https://github.com/your-username/FinTrack.git
+cd FinTrack
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/your-username/FinTrack.git
-   cd FinTrack
-   ```
+# 2. Copy environment template
+cp .env.example .env
 
-2. **Install dependencies**:
-   ```bash
-   npm install --prefix server
-   npm install --prefix client
-   ```
+# 3. Install dependencies
+npm install --prefix server
+npm install --prefix client
 
-3. **Run in Development Mode**:
-   ```bash
-   npm run dev
-   ```
-   - Frontend runs at: `http://localhost:3000`
-   - Backend API runs at: `http://localhost:5001`
+# 4. Start concurrent development servers
+npm run dev
+```
 
-4. **Run Unit Tests**:
-   ```bash
-   npm test
-   ```
-   Runs the Vitest test suite covering:
-   - Date parser resolution (US, EU, ISO, text months)
-   - Amount and currency polarity normalization
-   - Bank preset matching (Chase, Revolut, Generic)
-   - SHA-256 deduplication hashing
-   - Rule-based categorization and subscription detector
-
-5. **Build for Production**:
-   ```bash
-   npm run build
-   npm start
-   ```
-   The Express server serves the optimized Vite client production bundle directly from `client/dist`.
+Visit `http://localhost:5001` to view FinTrack. If `DATABASE_URL` is omitted, FinTrack automatically initializes local SQLite data in `./data/fintrack.db` with sample data.
 
 ---
 
-## 💡 Design Decisions & Architecture
+## 7. Google Cloud Production Deployment Guide
 
-### 1. CSV Parsing Architecture
-Naive string splitting (`line.split(',')`) routinely fails on real-world bank exports because descriptions often contain commas (e.g. `"WHOLEFDS SOMA, SAN FRANCISCO, CA"`). FinTrack uses **PapaParse** for:
-- Quote-escaped field handling
-- Dynamic delimiter detection (`,` vs `;` vs `\t`)
-- Streaming support for statements with thousands of rows
-- Preamble header stripping: Bank statements often include metadata lines (e.g. `Account: ****1234`) before the table headers; FinTrack detects the real header index automatically.
+### A. Deploy Backend to Google Cloud Run
 
-### 2. Date Ambiguity Handling
-Statements from US institutions use `MM/DD/YYYY` while European banks use `DD/MM/YYYY` or `DD.MM.YYYY`.
-FinTrack employs a multi-tiered date resolution strategy:
-1. First checks for ISO standard format (`YYYY-MM-DD`).
-2. Checks numeric values: if the first number $> 12$, it is unambiguously the day (`DD/MM/YYYY`). If the second number $> 12$, it is unambiguously the month (`MM/DD/YYYY`).
-3. Dot delimiters (`.`) automatically favor the European format standard.
-4. Allows user-selected overrides (`US`, `EU`, `AUTO`) in the CSV Import modal.
+#### 1. Setup Google Artifact Registry & Cloud SQL
+```bash
+# Set your project ID & region
+export PROJECT_ID="your-gcp-project-id"
+export REGION="us-central1"
 
-### 3. Deduplication Logic
-Banks often re-export overlapping date windows. Rather than relying on fragile row numbers or naive description matching, FinTrack computes a normalized transaction fingerprint:
-$$\text{hash} = \text{SHA256}(\text{accountId} \parallel \text{normalizedDate} \parallel \text{cleanDescription} \parallel \text{amountCents})$$
-This guarantees that re-uploading the same statement will not duplicate transactions, accurately reporting the number of skipped duplicates to the user.
+# Enable required Google Cloud APIs
+gcloud services enable \
+  run.googleapis.com \
+  artifactregistry.googleapis.com \
+  cloudbuild.googleapis.com \
+  sqladmin.googleapis.com \
+  secretmanager.googleapis.com
 
-### 4. Categorization Strategy
-FinTrack combines a prioritized hierarchy:
-1. **User Custom Rules** (Priority 100): User-created exact, contains, or regex rules.
-2. **System Default Rules** (Priority 10–50): Curated patterns for groceries, dining, transit, utilities, subscriptions, and payroll.
-3. **Interactive Learning**: When a user changes a category in the transactions table, FinTrack prompts to remember the rule. Clicking "Remember Rule & Apply" creates a persistent rule and retroactively normalizes all similar historic transactions.
+# Create an Artifact Registry repository for Docker images
+gcloud artifacts repositories create fintrack-repo \
+  --repository-format=docker \
+  --location=$REGION \
+  --description="FinTrack Docker Repository"
+```
+
+#### 2. Configure Production Secrets
+```bash
+# Create database and cryptographic secrets in Secret Manager
+gcloud secrets create fintrack-db-url --data-file=- <<< "postgresql://fintrack_user:password@/fintrack?host=/cloudsql/$PROJECT_ID:$REGION:fintrack-db"
+gcloud secrets create fintrack-jwt-secret --data-file=- <<< "$(openssl rand -hex 32)"
+gcloud secrets create fintrack-cookie-secret --data-file=- <<< "$(openssl rand -hex 32)"
+gcloud secrets create fintrack-server-enc-key --data-file=- <<< "$(openssl rand -hex 32)"
+gcloud secrets create fintrack-cron-secret --data-file=- <<< "$(openssl rand -hex 32)"
+gcloud secrets create fintrack-gemini-key --data-file=- <<< "AIzaSyYourGeminiApiKey"
+```
+
+#### 3. Build & Deploy via Google Cloud Build
+```bash
+# Submit build to Google Cloud Build
+gcloud builds submit --config=cloudbuild.yaml \
+  --substitutions=_REGION=$REGION,_REPO_NAME=fintrack-repo,_SERVICE_NAME=fintrack-service
+```
+
+### B. Deploy Frontend to Firebase Hosting
+
+```bash
+# 1. Install Firebase CLI and login
+npm install -g firebase-tools
+firebase login
+
+# 2. Link your Firebase project
+firebase use --add $PROJECT_ID
+
+# 3. Build client SPA
+npm run build --prefix client
+
+# 4. Deploy static bundle with Cloud Run API rewrites
+firebase deploy --only hosting
+```
 
 ---
 
-## 🚢 Deployment (Railway / Vercel / Render)
+## 8. Custom Domain Configuration (e.g. `fintrack.app`)
 
-FinTrack is pre-configured for simple single-command deployment:
-- **Railway / Render**: Deploy the root directory with `npm run build` and start command `npm start`. Set `PORT=5001`.
-- **Database Persistence**: SQLite database file is stored in `server/data/fintrack.db`. In container environments, mount a persistent volume to `/app/server/data`.
+1. **In Firebase Hosting Console**:
+   - Go to **Hosting** $\rightarrow$ **Custom Domains** $\rightarrow$ **Add Custom Domain**.
+   - Enter `fintrack.app` (and `www.fintrack.app`).
+2. **Update DNS Records with your Registrar**:
+   - Add the two `A` records provided by Google/Firebase to your DNS zone apex (`@`):
+     ```text
+     Type: A     Host: @    Value: 199.36.158.100
+     Type: A     Host: @    Value: 199.36.158.100
+     ```
+   - For `www`, add a `CNAME` pointing to `fintrack.app` or the Firebase hosting subdomain.
+3. **SSL Provisioning**:
+   - Firebase automatically provisions and renews Let's Encrypt / Google Trust Services SSL certificates within minutes.
+4. **Cloud Run API Mapping**:
+   - The included `firebase.json` automatically rewrites all requests to `/api/**` to your Cloud Run service (`fintrack-service`), preserving HTTPS across custom domains with zero CORS friction.
 
 ---
 
-## 📄 License
-MIT License. Built for seamless personal financial tracking.
+## 9. Google Cloud Scheduler (Automated Retention Purge)
+
+To trigger the retention cleaner worker automatically every 24 hours:
+
+```bash
+gcloud scheduler jobs create http fintrack-retention-purge \
+  --schedule="0 3 * * *" \
+  --time-zone="Etc/UTC" \
+  --uri="https://fintrack-service-<hash>-uc.a.run.app/api/jobs/cleanup" \
+  --http-method=POST \
+  --headers="Authorization=Bearer YOUR_CRON_SECRET"
+```
+
+---
+
+## 10. Automated Tests & Quality Verification
+
+Run the comprehensive test suite:
+
+```bash
+npm test --prefix server
+```
+
+Build verification:
+```bash
+npm run build --prefix client
+npm run build --prefix server
+```
+
+---
+
+## License
+MIT License. FinTrack — Privacy-First Financial Intelligence.

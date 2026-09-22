@@ -1,0 +1,95 @@
+-- FinTrack Production PostgreSQL DDL Schema
+-- Compatible with Google Cloud SQL, Supabase, Neon, and AWS RDS PostgreSQL
+
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash TEXT,
+  name VARCHAR(255) NOT NULL,
+  currency_preference VARCHAR(10) DEFAULT 'USD',
+  avatar_url TEXT,
+  email_verified BOOLEAN DEFAULT FALSE,
+  verification_token TEXT,
+  verification_expires TIMESTAMP WITH TIME ZONE,
+  password_reset_token TEXT,
+  password_reset_expires TIMESTAMP WITH TIME ZONE,
+  encryption_salt VARCHAR(64) NOT NULL,
+  data_retention_days INTEGER,
+  ai_consent BOOLEAN DEFAULT FALSE,
+  ai_provider VARCHAR(50) DEFAULT 'gemini',
+  ai_byo_key_encrypted TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS accounts (
+  id VARCHAR(64) PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name VARCHAR(255) NOT NULL,
+  type VARCHAR(50) NOT NULL,
+  currency VARCHAR(10) DEFAULT 'USD',
+  institution VARCHAR(255),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS categories (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  name VARCHAR(255) NOT NULL,
+  color VARCHAR(50) NOT NULL,
+  icon VARCHAR(50) NOT NULL,
+  is_default INTEGER DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS category_rules (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+  match_type VARCHAR(50) NOT NULL,
+  pattern VARCHAR(255) NOT NULL,
+  priority INTEGER DEFAULT 10,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS transactions (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  account_id VARCHAR(64) NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  date VARCHAR(30) NOT NULL,
+  encrypted_blob TEXT NOT NULL,
+  hash VARCHAR(128) NOT NULL,
+  raw_data TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_tx_user_hash ON transactions(user_id, hash);
+CREATE INDEX IF NOT EXISTS idx_tx_user_date ON transactions(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_tx_deleted_at ON transactions(deleted_at);
+
+CREATE TABLE IF NOT EXISTS budgets (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  category_id INTEGER NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+  amount NUMERIC(14, 2) NOT NULL,
+  period VARCHAR(20) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(user_id, category_id, period)
+);
+
+CREATE TABLE IF NOT EXISTS ai_conversations (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role VARCHAR(20) NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS audit_deletion_logs (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL,
+  event_type VARCHAR(50) NOT NULL,
+  records_deleted INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);

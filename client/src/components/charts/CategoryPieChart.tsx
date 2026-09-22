@@ -38,7 +38,7 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({ data, totalS
           📊
         </div>
         <div className="text-sm font-bold text-[#0e0f0c]">No Expenses Recorded</div>
-        <div className="text-xs text-[#868685] mt-1 max-w-xs">
+        <div className="text-xs text-[#5f655b] mt-1 max-w-xs">
           Import a bank statement CSV to see your category spending breakdown.
         </div>
       </div>
@@ -53,7 +53,7 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({ data, totalS
           <p className="text-xs text-[#454745]">Distribution of expenses this period</p>
         </div>
         <div className="text-right">
-          <div className="text-xs text-[#868685] font-semibold uppercase tracking-wider">Total Outflow</div>
+          <div className="text-xs text-[#5f655b] font-semibold uppercase tracking-wider">Total Outflow</div>
           <div className="text-xl font-[900] text-[#0e0f0c]">{formatCurrency(totalSpent)}</div>
         </div>
       </div>
@@ -79,7 +79,7 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({ data, totalS
                         <div className="text-sm font-[900] text-[#0e0f0c]">
                           {formatCurrency(item.totalAmount)}
                         </div>
-                        <div className="text-[11px] text-[#868685]">
+                        <div className="text-[11px] text-[#5f655b]">
                           {item.percentage}% of spending ({item.transactionCount} txns)
                         </div>
                       </div>
@@ -112,7 +112,7 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({ data, totalS
 
           {/* Center Callout */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <span className="text-[10px] uppercase tracking-wider text-[#868685] font-bold">Total</span>
+            <span className="text-[10px] uppercase tracking-wider text-[#5f655b] font-bold">Total</span>
             <span className="text-base font-[900] text-[#0e0f0c]">{formatCurrency(totalSpent)}</span>
           </div>
         </div>
@@ -135,7 +135,7 @@ export const CategoryPieChart: React.FC<CategoryPieChartProps> = ({ data, totalS
               </div>
               <div className="text-right flex-shrink-0 ml-2">
                 <div className="text-xs font-[900] text-[#0e0f0c]">{formatCurrency(cat.totalAmount)}</div>
-                <div className="text-[10px] text-[#868685]">{cat.percentage}%</div>
+                <div className="text-[10px] text-[#5f655b]">{cat.percentage}%</div>
               </div>
             </div>
           ))}

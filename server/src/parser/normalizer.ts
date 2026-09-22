@@ -241,9 +241,25 @@ export function normalizeAmount(
 }
 
 /**
+ * Neutralizes CSV / spreadsheet formula injection (CWE-1236).
+ * Escapes leading characters that spreadsheets interpret as formula triggers:
+ * '=', '+', '-', '@', tab (\t), carriage return (\r).
+ */
+export function sanitizeCsvFormula(text: string): string {
+  if (!text || typeof text !== 'string') return text;
+  // Strip control characters
+  let sanitized = text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+  if (/^[=+\-@\t\r]/.test(sanitized)) {
+    return `'${sanitized}`;
+  }
+  return sanitized;
+}
+
+/**
  * Normalizes description text:
  * - Trims and removes redundant prefixes (e.g., "PURCHASE AUTHORIZED ON", "SQ *", "TST*")
  * - Cleans up multiple spaces
+ * - Neutralizes formula injection vulnerabilities (CWE-1236)
  */
 export function cleanDescription(rawDesc: string): { clean: string; original: string } {
   if (!rawDesc || typeof rawDesc !== 'string') {
@@ -258,9 +274,11 @@ export function cleanDescription(rawDesc: string): { clean: string; original: st
   clean = clean.replace(/^(SQ\s*\*|TST\*\s*|PAYPAL\s*\*|AMZN\s+MKTP\s+US\*)/i, '');
   clean = clean.replace(/\s{2,}/g, ' ').trim();
 
+  const safeClean = sanitizeCsvFormula(clean || original);
+
   return {
-    clean: clean || original,
-    original,
+    clean: safeClean,
+    original: sanitizeCsvFormula(original),
   };
 }
 

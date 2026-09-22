@@ -26,7 +26,7 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
       {/* Top Banner / KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="fintrack-card p-6 rounded-[24px]">
-          <div className="text-xs font-bold uppercase tracking-wider text-[#868685]">
+          <div className="text-xs font-bold uppercase tracking-wider text-[#5f655b]">
             Detected Subscriptions
           </div>
           <div className="text-3xl font-[900] text-[#0e0f0c] mt-2">
@@ -78,10 +78,10 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
         </div>
 
         {subscriptions.length === 0 ? (
-          <div className="text-center py-16 text-[#868685]">
-            <AlertCircle className="w-8 h-8 text-[#868685] mx-auto mb-2" />
+          <div className="text-center py-16 text-[#5f655b]">
+            <AlertCircle className="w-8 h-8 text-[#5f655b] mx-auto mb-2" />
             <div className="text-sm font-bold text-[#0e0f0c]">No recurring subscriptions detected yet</div>
-            <div className="text-xs text-[#868685] mt-1 max-w-sm mx-auto">
+            <div className="text-xs text-[#5f655b] mt-1 max-w-sm mx-auto">
               As you import more monthly statements, transactions repeating at similar amounts every 28-32 days will automatically show up here.
             </div>
           </div>
@@ -102,20 +102,20 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
                   </div>
                   <div className="text-right">
                     <div className="text-base font-[900] text-[#0e0f0c]">{formatCurrency(sub.averageAmount)}</div>
-                    <div className="text-[10px] text-[#868685] uppercase font-bold">/ month</div>
+                    <div className="text-[10px] text-[#5f655b] uppercase font-bold">/ month</div>
                   </div>
                 </div>
 
                 <div className="pt-3 border-t border-[#e8ebe6] grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <span className="text-[#868685] block text-[11px]">Last Billed</span>
+                    <span className="text-[#5f655b] block text-[11px]">Last Billed</span>
                     <span className="text-[#0e0f0c] font-semibold flex items-center gap-1 mt-0.5">
-                      <Calendar className="w-3.5 h-3.5 text-[#868685]" />
+                      <Calendar className="w-3.5 h-3.5 text-[#5f655b]" />
                       {sub.lastDate}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[#868685] block text-[11px]">Est. Renewal</span>
+                    <span className="text-[#5f655b] block text-[11px]">Est. Renewal</span>
                     <span className="text-[#054d28] font-bold flex items-center gap-1 mt-0.5">
                       <Calendar className="w-3.5 h-3.5 text-[#2ead4b]" />
                       {sub.nextEstimatedDate}
@@ -123,7 +123,7 @@ export const SubscriptionList: React.FC<SubscriptionListProps> = ({
                   </div>
                 </div>
 
-                <div className="pt-1 flex items-center justify-between text-[11px] text-[#868685] font-medium">
+                <div className="pt-1 flex items-center justify-between text-[11px] text-[#5f655b] font-medium">
                   <span>Occurrences: {sub.occurrences} statements</span>
                   <span className="text-[#0e0f0c] font-bold">~{formatCurrency(sub.averageAmount * 12)} / year</span>
                 </div>

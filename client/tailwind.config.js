@@ -24,7 +24,7 @@ export default {
           deep: '#163300',
         },
         body: '#454745',
-        mute: '#868685',
+        mute: '#5f655b',
         canvas: {
           DEFAULT: '#ffffff',
           soft: '#e8ebe6',

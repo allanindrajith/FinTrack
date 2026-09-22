@@ -9,7 +9,7 @@ import {
   Sparkles,
   ArrowRight,
 } from 'lucide-react';
-import { Account, ColumnMapping, CsvPreviewResult } from '../types.js';
+import { Account, Category, CategoryRule, ColumnMapping, CsvPreviewResult } from '../types.js';
 import { api } from '../services/api.js';
 
 interface CsvUploaderModalProps {
@@ -18,6 +18,8 @@ interface CsvUploaderModalProps {
   accounts: Account[];
   selectedAccountId: string;
   onSuccess: () => void;
+  categories?: Category[];
+  rules?: CategoryRule[];
 }
 
 const SAMPLE_CHASE_CSV = `Transaction Date,Post Date,Description,Category,Type,Amount,Memo
@@ -44,6 +46,8 @@ export const CsvUploaderModal: React.FC<CsvUploaderModalProps> = ({
   accounts,
   selectedAccountId,
   onSuccess,
+  categories,
+  rules,
 }) => {
   const [file, setFile] = useState<File | null>(null);
   const [csvText, setCsvText] = useState<string>('');
@@ -128,6 +132,8 @@ export const CsvUploaderModal: React.FC<CsvUploaderModalProps> = ({
         customMapping: showManualMapping ? customMapping : undefined,
         dateFormatPreference,
         invertAmountSign,
+        categories,
+        rules,
       });
 
       setImportResult({
@@ -169,7 +175,7 @@ export const CsvUploaderModal: React.FC<CsvUploaderModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-[#868685] hover:text-[#0e0f0c] rounded-full hover:bg-[#e8ebe6] transition-colors"
+            className="p-2 text-[#5f655b] hover:text-[#0e0f0c] rounded-full hover:bg-[#e8ebe6] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -272,7 +278,7 @@ export const CsvUploaderModal: React.FC<CsvUploaderModalProps> = ({
                     }
                   }}
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-[#868685]/40 hover:border-[#0e0f0c] bg-[#e8ebe6]/40 hover:bg-[#e8ebe6] p-10 rounded-[24px] flex flex-col items-center justify-center text-center cursor-pointer transition-all group"
+                  className="border-2 border-dashed border-[#5f655b]/40 hover:border-[#0e0f0c] bg-[#e8ebe6]/40 hover:bg-[#e8ebe6] p-10 rounded-[24px] flex flex-col items-center justify-center text-center cursor-pointer transition-all group"
                 >
                   <input
                     ref={fileInputRef}

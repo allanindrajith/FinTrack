@@ -1,0 +1,59 @@
+# ==============================================================================
+# Google Cloud Build Pipeline - FinTrack Deployment to Cloud Run
+# ==============================================================================
+steps:
+  # 1. Build the multi-stage Docker container image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-image'
+    args:
+      - 'build'
+      - '-t'
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/fintrack:$COMMIT_SHA'
+      - '-t'
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/fintrack:latest'
+      - '.'
+
+  # 2. Push image to Google Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-image'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/fintrack'
+
+  # 3. Deploy to Google Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-cloud-run'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '$_SERVICE_NAME'
+      - '--image=$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/fintrack:$COMMIT_SHA'
+      - '--region=$_REGION'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=8080'
+      - '--min-instances=0'
+      - '--max-instances=10'
+      - '--memory=512Mi'
+      - '--cpu=1'
+      - '--set-env-vars=NODE_ENV=production'
+      # Inject runtime secrets from Google Secret Manager (recommended for production).
+      # Secrets must be created in Secret Manager before deployment:
+      #   gcloud secrets create fintrack-jwt-secret --replication-policy="automatic"
+      #   echo -n "$(openssl rand -hex 32)" | gcloud secrets versions add fintrack-jwt-secret --data-file=-
+      # See README.md "Deploying to Google Cloud Run" for full setup instructions.
+      - '--set-secrets=DATABASE_URL=fintrack-db-url:latest,JWT_SECRET=fintrack-jwt-secret:latest,COOKIE_SECRET=fintrack-cookie-secret:latest,SERVER_ENCRYPTION_KEY=fintrack-server-enc-key:latest,CRON_SECRET=fintrack-cron-secret:latest,GEMINI_API_KEY=fintrack-gemini-key:latest'
+
+substitutions:
+  _REGION: 'us-central1'
+  _REPO_NAME: 'fintrack-repo'
+  _SERVICE_NAME: 'fintrack-service'
+
+images:
+  - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/fintrack:$COMMIT_SHA'
+  - '$_REGION-docker.pkg.dev/$PROJECT_ID/$_REPO_NAME/fintrack:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

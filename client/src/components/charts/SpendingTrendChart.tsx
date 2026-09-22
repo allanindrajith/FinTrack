@@ -35,7 +35,7 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({ data }) 
     return (
       <div className="fintrack-card p-6 rounded-[24px] flex flex-col items-center justify-center h-[400px] text-center">
         <div className="text-sm font-bold text-[#0e0f0c]">No Historical Trends Yet</div>
-        <div className="text-xs text-[#868685] mt-1">Import multiple statements over time to see monthly trends.</div>
+        <div className="text-xs text-[#5f655b] mt-1">Import multiple statements over time to see monthly trends.</div>
       </div>
     );
   }
@@ -78,14 +78,14 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({ data }) 
             <XAxis
               dataKey="period"
               tickFormatter={formatPeriodLabel}
-              stroke="#868685"
+              stroke="#5f655b"
               fontSize={11}
               tickLine={false}
               axisLine={false}
             />
 
             <YAxis
-              stroke="#868685"
+              stroke="#5f655b"
               fontSize={11}
               tickLine={false}
               axisLine={false}

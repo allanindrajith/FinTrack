@@ -68,7 +68,7 @@ export const BudgetProgress: React.FC<BudgetProgressProps> = ({
       <div className="flex-1 overflow-y-auto space-y-3 pr-2">
         {budgets.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-44 text-center">
-            <p className="text-xs text-[#868685]">No category budgets set for this month.</p>
+            <p className="text-xs text-[#5f655b]">No category budgets set for this month.</p>
             <button
               onClick={onOpenBudgetModal}
               className="mt-2 text-xs font-bold text-[#0e0f0c] underline"

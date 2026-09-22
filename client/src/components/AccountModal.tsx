@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Building, Plus } from 'lucide-react';
+import { X, Building, Plus, AlertCircle } from 'lucide-react';
 import { api } from '../services/api.js';
 
 interface AccountModalProps {
@@ -18,6 +18,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
   const [currency, setCurrency] = useState('USD');
   const [institution, setInstitution] = useState('');
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   if (!isOpen) return null;
 
@@ -26,6 +27,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
     if (!name.trim()) return;
 
     setLoading(true);
+    setErrorMessage('');
     try {
       await api.createAccount(name.trim(), type, currency, institution.trim());
       setName('');
@@ -33,7 +35,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
       onAccountCreated();
       onClose();
     } catch (err: any) {
-      alert(err.message || 'Failed to create account');
+      setErrorMessage(err.message || 'Failed to create account');
     } finally {
       setLoading(false);
     }
@@ -49,15 +51,21 @@ export const AccountModal: React.FC<AccountModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-[900] text-[#0e0f0c]">Add Financial Account</h2>
-              <p className="text-xs text-[#454745]">Track multiple bank accounts and credit cards</p>
+              <p className="text-xs text-[#5f655b]">Track multiple bank accounts and credit cards</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-[#868685] hover:text-[#0e0f0c] rounded-full hover:bg-[#e8ebe6]">
+          <button onClick={onClose} className="p-2 text-[#5f655b] hover:text-[#0e0f0c] rounded-full hover:bg-[#e8ebe6]">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {errorMessage && (
+            <div className="p-3 bg-[#fce8e8] border border-[#d03238]/30 rounded-xl text-xs text-[#a72027] font-semibold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
           <div>
             <label className="block text-xs font-bold text-[#0e0f0c] mb-1">Account Name *</label>
             <input
@@ -66,7 +74,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               placeholder="e.g. Chase Sapphire Preferred or Capital One"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3.5 py-2 bg-[#e8ebe6] rounded-xl text-xs font-semibold text-[#0e0f0c] placeholder-[#868685] focus:outline-none focus:border-[#0e0f0c]"
+              className="w-full px-3.5 py-2 bg-[#e8ebe6] rounded-xl text-xs font-semibold text-[#0e0f0c] placeholder-[#5f655b] focus:outline-none focus:border-[#0e0f0c]"
             />
           </div>
 
@@ -108,7 +116,7 @@ export const AccountModal: React.FC<AccountModalProps> = ({
               placeholder="e.g. Chase, Bank of America, Revolut"
               value={institution}
               onChange={(e) => setInstitution(e.target.value)}
-              className="w-full px-3.5 py-2 bg-[#e8ebe6] rounded-xl text-xs font-semibold text-[#0e0f0c] placeholder-[#868685] focus:outline-none focus:border-[#0e0f0c]"
+              className="w-full px-3.5 py-2 bg-[#e8ebe6] rounded-xl text-xs font-semibold text-[#0e0f0c] placeholder-[#5f655b] focus:outline-none focus:border-[#0e0f0c]"
             />
           </div>
 

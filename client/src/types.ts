@@ -122,4 +122,27 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  currency?: string;
+  profile_picture?: string;
+  email_verified?: boolean;
+  retention_policy?: string;
+  retention_custom_date?: string;
+  ai_consent?: boolean;
+  ai_provider?: string;
+  has_byo_key?: boolean;
+}
+
+export interface AuditLogEntry {
+  id: number;
+  user_id: number;
+  action: string;
+  entity_type: string;
+  entity_id?: string;
+  details?: any;
+  created_at: string;
+}
+
+export interface AiChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
 }

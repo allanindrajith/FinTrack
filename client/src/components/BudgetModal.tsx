@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, PieChart, Check } from 'lucide-react';
+import { X, PieChart, Check, AlertCircle } from 'lucide-react';
 import { Budget, Category } from '../types.js';
 import { api } from '../services/api.js';
 
@@ -21,10 +21,12 @@ export const BudgetModal: React.FC<BudgetModalProps> = ({
   const [budgetValues, setBudgetValues] = useState<Record<number, string>>({});
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     if (isOpen) {
       loadCurrentBudgets();
+      setErrorMessage('');
     }
   }, [isOpen, period]);
 
@@ -44,6 +46,7 @@ export const BudgetModal: React.FC<BudgetModalProps> = ({
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+    setErrorMessage('');
     try {
       for (const [catId, val] of Object.entries(budgetValues)) {
         const num = parseFloat(val);
@@ -55,7 +58,7 @@ export const BudgetModal: React.FC<BudgetModalProps> = ({
       setTimeout(() => setSuccess(false), 3000);
       onBudgetsUpdated();
     } catch (err: any) {
-      alert(err.message || 'Failed to save budgets');
+      setErrorMessage(err.message || 'Failed to save budgets');
     } finally {
       setSaving(false);
     }
@@ -73,15 +76,22 @@ export const BudgetModal: React.FC<BudgetModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-[900] text-[#0e0f0c]">Monthly Category Budgets</h2>
-              <p className="text-xs text-[#454745]">Set target spending limits for {period}</p>
+              <p className="text-xs text-[#5f655b]">Set target spending limits for {period}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-[#868685] hover:text-[#0e0f0c] rounded-full hover:bg-[#e8ebe6]">
+          <button onClick={onClose} className="p-2 text-[#5f655b] hover:text-[#0e0f0c] rounded-full hover:bg-[#e8ebe6]">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSave} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+          {errorMessage && (
+            <div className="p-3.5 bg-[#fce8e8] border border-[#d03238]/30 rounded-2xl text-xs text-[#a72027] font-bold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
           {success && (
             <div className="p-3.5 bg-[#e2f6d5] border border-[#2ead4b]/30 rounded-2xl text-xs text-[#054d28] font-bold flex items-center gap-2">
               <Check className="w-4 h-4" />
@@ -101,7 +111,7 @@ export const BudgetModal: React.FC<BudgetModalProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-[#868685]">$</span>
+                  <span className="text-xs font-bold text-[#5f655b]">$</span>
                   <input
                     type="number"
                     step="10"

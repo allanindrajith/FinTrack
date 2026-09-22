@@ -3,13 +3,32 @@ import multer from 'multer';
 import { db } from '../db/database.js';
 import { AuthRequest, requireAuth } from './auth.js';
 import { parseBankCsv } from '../parser/csvParser.js';
-import { autoCategorizeTransactions } from '../engine/categorizer.js';
-import { Category, CategoryRule, ColumnMapping } from '../types/index.js';
+import { ColumnMapping } from '../types/index.js';
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 15 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ext = file.originalname.toLowerCase().split('.').pop() || '';
+    const allowedExts = ['csv', 'tsv', 'txt'];
+    const allowedMimes = [
+      'text/csv',
+      'text/plain',
+      'text/tab-separated-values',
+      'application/vnd.ms-excel',
+      'application/csv',
+      'text/x-csv',
+    ];
+    if (allowedExts.includes(ext) || allowedMimes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file format. Please upload a valid CSV, TSV, or plain text bank statement.'));
+    }
+  },
+});
 const router = Router();
 
-// POST /api/transactions/preview - Preview CSV before importing (inspect columns & detect preset)
+// 1. POST /api/transactions/preview - Parse CSV structure for column mapping preview
 router.post('/preview', requireAuth, upload.single('file'), (req: AuthRequest, res: Response): void => {
   let csvContent = '';
 
@@ -23,306 +42,278 @@ router.post('/preview', requireAuth, upload.single('file'), (req: AuthRequest, r
   }
 
   const accountId = req.body.accountId || 'preview';
-  const customMapping = req.body.customMapping ? JSON.parse(req.body.customMapping) : undefined;
+  const customMapping = req.body.customMapping
+    ? typeof req.body.customMapping === 'string'
+      ? JSON.parse(req.body.customMapping)
+      : req.body.customMapping
+    : undefined;
   const dateFormatPreference = req.body.dateFormatPreference;
+  const isFullParse = req.body.fullParse === 'true' || req.body.fullParse === true;
 
-  const result = parseBankCsv(csvContent, {
-    accountId,
-    customMapping,
-    dateFormatPreference,
-  });
+  try {
+    const result = parseBankCsv(csvContent, {
+      accountId,
+      customMapping,
+      dateFormatPreference,
+    });
 
-  res.json({
-    headers: result.headers,
-    previewRows: result.previewRows,
-    detectedPreset: result.detectedPreset,
-    detectedPresetName: result.detectedPresetName,
-    confidence: result.confidence,
-    totalRows: result.totalRows,
-    sampleParsed: result.parsedTransactions.slice(0, 5),
-  });
+    res.json({
+      headers: result.headers,
+      previewRows: result.previewRows,
+      detectedPreset: result.detectedPreset,
+      detectedPresetName: result.detectedPresetName,
+      confidence: result.confidence,
+      totalRows: result.totalRows,
+      sampleParsed: isFullParse ? result.parsedTransactions : result.parsedTransactions.slice(0, 10),
+    });
+  } catch (err: any) {
+    console.error('Preview error:', err);
+    res.status(400).json({ error: err.message || 'Failed to parse CSV file' });
+  }
 });
 
-// POST /api/transactions/upload - Process and save CSV transactions to DB with deduplication and auto-categorization
-router.post('/upload', requireAuth, upload.single('file'), (req: AuthRequest, res: Response): void => {
+// 2. POST /api/transactions/upload-encrypted - Ingest client-encrypted transactions with blind deduplication
+router.post('/upload-encrypted', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   const userId = req.user!.id;
-  let csvContent = '';
-
-  if (req.file) {
-    csvContent = req.file.buffer.toString('utf-8');
-  } else if (req.body.csvText) {
-    csvContent = req.body.csvText;
-  } else {
-    res.status(400).json({ error: 'No CSV file or text provided' });
-    return;
-  }
-
+  const txList = req.body.transactions || req.body.encryptedRecords;
   const accountId = req.body.accountId;
-  if (!accountId) {
-    res.status(400).json({ error: 'Account ID is required' });
+
+  if (!accountId || !Array.isArray(txList)) {
+    res.status(400).json({ error: 'Invalid request: accountId and transactions/encryptedRecords array are required' });
     return;
   }
 
-  // Ensure account belongs to user
-  const account = db.prepare('SELECT id FROM accounts WHERE id = ? AND user_id = ?').get(accountId, userId);
-  if (!account) {
-    res.status(404).json({ error: 'Account not found' });
-    return;
-  }
-
-  let customMapping: ColumnMapping | undefined;
-  if (req.body.customMapping) {
-    try {
-      customMapping = typeof req.body.customMapping === 'string' ? JSON.parse(req.body.customMapping) : req.body.customMapping;
-    } catch {}
-  }
-
-  const dateFormatPreference = req.body.dateFormatPreference || 'AUTO';
-  const invertAmountSign = req.body.invertAmountSign === 'true' || req.body.invertAmountSign === true;
-
-  // 1. Fetch existing hashes for this user and account
-  const existingRows = db.prepare('SELECT hash FROM transactions WHERE user_id = ? AND account_id = ?').all(userId, accountId) as { hash: string }[];
-  const existingHashes = new Set<string>(existingRows.map(r => r.hash));
-
-  // 2. Parse CSV
-  const parseResult = parseBankCsv(csvContent, {
-    accountId,
-    customMapping,
-    dateFormatPreference,
-    invertAmountSign,
-    existingHashes,
-  });
-
-  // 3. Fetch categories and user rules for auto-categorization
-  const categories = db.prepare('SELECT * FROM categories WHERE user_id IS NULL OR user_id = ?').all(userId) as unknown as Category[];
-  const userRules = db.prepare('SELECT * FROM category_rules WHERE user_id = ? ORDER BY priority DESC').all(userId) as unknown as CategoryRule[];
-
-  // 4. Auto-categorize new transactions
-  const categorized = autoCategorizeTransactions(parseResult.newTransactions, userRules, categories);
-
-  // 5. Batch insert into database
-  const insertTx = db.prepare(`
-    INSERT INTO transactions (user_id, account_id, date, description, original_description, amount, type, category_id, hash, raw_data)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  db.exec('BEGIN TRANSACTION;');
   try {
-    for (const tx of categorized) {
-      insertTx.run(
-        userId,
-        tx.accountId,
-        tx.date,
-        tx.description,
-        tx.originalDescription,
-        tx.amount,
-        tx.type,
-        tx.categoryId || null,
-        tx.hash,
-        JSON.stringify(tx.rawData || {})
+    // Verify account ownership
+    const account = await db.queryOne('SELECT id FROM accounts WHERE id = $1 AND user_id = $2', [
+      accountId,
+      userId,
+    ]);
+    if (!account) {
+      res.status(404).json({ error: 'Account not found or unauthorized' });
+      return;
+    }
+
+    // Fetch existing blind hashes for this user and account to deduplicate
+    const existingRows = await db.query<{ hash: string }>(
+      'SELECT hash FROM transactions WHERE user_id = $1 AND account_id = $2 AND deleted_at IS NULL',
+      [userId, accountId]
+    );
+    const existingHashes = new Set(existingRows.map((r) => r.hash));
+
+    let importedCount = 0;
+    let duplicatesSkipped = 0;
+
+    for (const tx of txList) {
+      const blob = tx.encryptedBlob || tx.encrypted_blob;
+      if (!tx.date || !blob || !tx.hash) {
+        continue;
+      }
+
+      if (existingHashes.has(tx.hash)) {
+        duplicatesSkipped++;
+        continue;
+      }
+
+      await db.execute(
+        `INSERT INTO transactions (
+          user_id, account_id, date, encrypted_blob, hash, raw_data
+        ) VALUES ($1, $2, $3, $4, $5, $6)`,
+        [
+          userId,
+          accountId,
+          tx.date,
+          tx.encryptedBlob,
+          tx.hash,
+          tx.rawData || null,
+        ]
+      );
+
+      existingHashes.add(tx.hash);
+      importedCount++;
+    }
+
+    res.json({
+      success: true,
+      totalRows: txList.length,
+      importedCount,
+      duplicatesSkipped,
+    });
+  } catch (err: any) {
+    console.error('Encrypted upload error:', err);
+    res.status(500).json({ error: err.message || 'Failed to save encrypted transactions' });
+  }
+});
+
+// 2b. GET /api/transactions/encrypted — alias for GET / (used by api.getEncryptedTransactions())
+// Returns the same encrypted blobs; explicit path makes the zero-knowledge contract clear.
+router.get('/encrypted', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  const userId = req.user!.id;
+  const { accountId, limit = 500, offset = 0 } = req.query;
+
+  try {
+    const conditions: string[] = ['t.user_id = $1', 't.deleted_at IS NULL'];
+    const params: any[] = [userId];
+    let pIdx = 2;
+
+    if (accountId) {
+      conditions.push(`t.account_id = $${pIdx++}`);
+      params.push(accountId);
+    }
+
+    const whereClause = conditions.join(' AND ');
+    const limitNum = Math.min(Number(limit) || 500, 2000);
+    const offsetNum = Number(offset) || 0;
+
+    params.push(limitNum, offsetNum);
+
+    const rows = await db.query(
+      `SELECT t.id, t.user_id, t.account_id, t.date, t.encrypted_blob, t.hash, t.created_at,
+              a.name as account_name, a.currency as account_currency
+       FROM transactions t
+       LEFT JOIN accounts a ON t.account_id = a.id
+       WHERE ${whereClause}
+       ORDER BY t.date DESC, t.id DESC
+       LIMIT $${pIdx++} OFFSET $${pIdx++}`,
+      params
+    );
+
+    res.json({ records: rows, transactions: rows });
+  } catch (err: any) {
+    console.error('Fetch encrypted transactions error:', err);
+    res.status(500).json({ error: 'Failed to retrieve encrypted transactions' });
+  }
+});
+
+// 3. GET /api/transactions - Retrieve encrypted transaction records for client-side decryption
+router.get('/', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  const userId = req.user!.id;
+  const { accountId, startDate, endDate, limit = 500, offset = 0 } = req.query;
+
+  try {
+    const conditions: string[] = ['t.user_id = $1', 't.deleted_at IS NULL'];
+    const params: any[] = [userId];
+    let pIdx = 2;
+
+    if (accountId) {
+      conditions.push(`t.account_id = $${pIdx++}`);
+      params.push(accountId);
+    }
+
+    if (startDate) {
+      conditions.push(`t.date >= $${pIdx++}`);
+      params.push(startDate);
+    }
+
+    if (endDate) {
+      conditions.push(`t.date <= $${pIdx++}`);
+      params.push(endDate);
+    }
+
+    const whereClause = conditions.join(' AND ');
+
+    // Total count
+    const countRes = await db.queryOne<{ count: number | string }>(
+      `SELECT COUNT(*) as count FROM transactions t WHERE ${whereClause}`,
+      params
+    );
+    const total = Number(countRes?.count || 0);
+
+    // Records
+    const limitNum = Math.min(Number(limit) || 500, 2000);
+    const offsetNum = Number(offset) || 0;
+
+    params.push(limitNum);
+    params.push(offsetNum);
+
+    const rows = await db.query(
+      `SELECT t.id, t.user_id, t.account_id, t.date, t.encrypted_blob, t.hash, t.created_at,
+              a.name as account_name, a.currency as account_currency
+       FROM transactions t
+       LEFT JOIN accounts a ON t.account_id = a.id
+       WHERE ${whereClause}
+       ORDER BY t.date DESC, t.id DESC
+       LIMIT $${pIdx++} OFFSET $${pIdx++}`,
+      params
+    );
+
+    res.json({
+      transactions: rows,
+      total,
+      limit: limitNum,
+      offset: offsetNum,
+    });
+  } catch (err: any) {
+    console.error('Fetch transactions error:', err);
+    res.status(500).json({ error: 'Failed to retrieve transactions' });
+  }
+});
+
+// 4. PUT /api/transactions/:id - Update re-encrypted blob (e.g. recategorization)
+router.put('/:id', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
+  const userId = req.user!.id;
+  const id = Number(req.params.id);
+  const { encryptedBlob, date } = req.body;
+
+  if (!encryptedBlob) {
+    res.status(400).json({ error: 'encryptedBlob is required' });
+    return;
+  }
+
+  try {
+    const existing = await db.queryOne('SELECT id FROM transactions WHERE id = $1 AND user_id = $2', [
+      id,
+      userId,
+    ]);
+    if (!existing) {
+      res.status(404).json({ error: 'Transaction not found or unauthorized' });
+      return;
+    }
+
+    if (date) {
+      await db.execute(
+        'UPDATE transactions SET encrypted_blob = $1, date = $2 WHERE id = $3 AND user_id = $4',
+        [encryptedBlob, date, id, userId]
+      );
+    } else {
+      await db.execute(
+        'UPDATE transactions SET encrypted_blob = $1 WHERE id = $2 AND user_id = $3',
+        [encryptedBlob, id, userId]
       );
     }
-    db.exec('COMMIT;');
+
+    res.json({ success: true, message: 'Transaction updated successfully' });
   } catch (err: any) {
-    db.exec('ROLLBACK;');
-    res.status(500).json({ error: `Database insert failed: ${err.message}` });
-    return;
+    console.error('Update transaction error:', err);
+    res.status(500).json({ error: 'Failed to update transaction' });
   }
-
-  res.json({
-    totalRows: parseResult.totalRows,
-    importedCount: categorized.length,
-    duplicatesSkipped: parseResult.duplicatesSkipped,
-    detectedPreset: parseResult.detectedPreset,
-    detectedPresetName: parseResult.detectedPresetName,
-    confidence: parseResult.confidence,
-  });
 });
 
-// GET /api/transactions - Filterable, sortable, paginated transaction list
-router.get('/', requireAuth, (req: AuthRequest, res: Response): void => {
+// 5. DELETE /api/transactions/:id - Soft-delete a transaction
+router.delete('/:id', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   const userId = req.user!.id;
-  const {
-    accountId,
-    categoryId,
-    search,
-    startDate,
-    endDate,
-    type,
-    limit = '50',
-    offset = '0',
-    sortBy = 'date',
-    sortOrder = 'DESC',
-  } = req.query;
+  const id = Number(req.params.id);
 
-  let query = `
-    SELECT t.*, c.name as category_name, c.color as category_color, c.icon as category_icon, a.name as account_name
-    FROM transactions t
-    LEFT JOIN categories c ON t.category_id = c.id
-    LEFT JOIN accounts a ON t.account_id = a.id
-    WHERE t.user_id = ?
-  `;
-  const params: any[] = [userId];
-
-  if (accountId) {
-    query += ' AND t.account_id = ?';
-    params.push(accountId);
-  }
-  if (categoryId) {
-    query += ' AND t.category_id = ?';
-    params.push(categoryId);
-  }
-  if (type) {
-    query += ' AND t.type = ?';
-    params.push(type);
-  }
-  if (startDate) {
-    query += ' AND t.date >= ?';
-    params.push(startDate);
-  }
-  if (endDate) {
-    query += ' AND t.date <= ?';
-    params.push(endDate);
-  }
-  if (search) {
-    query += ' AND (t.description LIKE ? OR t.original_description LIKE ?)';
-    const term = `%${search}%`;
-    params.push(term, term);
-  }
-
-  // Count total matching
-  const countQuery = `SELECT COUNT(*) as total FROM (${query})`;
-  const countResult = db.prepare(countQuery).get(...params) as { total: number };
-
-  // Apply sorting and pagination
-  const allowedSorts = ['date', 'amount', 'description'];
-  const sortCol = allowedSorts.includes(sortBy as string) ? (sortBy as string) : 'date';
-  const sortDir = (sortOrder as string).toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
-
-  query += ` ORDER BY t.${sortCol} ${sortDir}, t.id DESC LIMIT ? OFFSET ?`;
-  params.push(parseInt(limit as string, 10), parseInt(offset as string, 10));
-
-  const transactions = db.prepare(query).all(...params);
-
-  res.json({
-    transactions,
-    total: countResult.total,
-    limit: parseInt(limit as string, 10),
-    offset: parseInt(offset as string, 10),
-  });
-});
-
-// PUT /api/transactions/:id - Update transaction
-router.put('/:id', requireAuth, (req: AuthRequest, res: Response): void => {
-  const userId = req.user!.id;
-  const { id } = req.params;
-  const { description, categoryId, date, amount } = req.body;
-
-  const tx = db.prepare('SELECT * FROM transactions WHERE id = ? AND user_id = ?').get(id, userId);
-  if (!tx) {
-    res.status(404).json({ error: 'Transaction not found' });
-    return;
-  }
-
-  db.prepare(`
-    UPDATE transactions 
-    SET description = COALESCE(?, description),
-        category_id = ?,
-        date = COALESCE(?, date),
-        amount = COALESCE(?, amount),
-        type = CASE WHEN ? < 0 THEN 'debit' ELSE 'credit' END
-    WHERE id = ? AND user_id = ?
-  `).run(
-    description || null,
-    categoryId !== undefined ? categoryId : null,
-    date || null,
-    amount !== undefined ? amount : null,
-    amount !== undefined ? amount : (tx as any).amount,
-    id,
-    userId
-  );
-
-  const updated = db.prepare(`
-    SELECT t.*, c.name as category_name, c.color as category_color, c.icon as category_icon, a.name as account_name
-    FROM transactions t
-    LEFT JOIN categories c ON t.category_id = c.id
-    LEFT JOIN accounts a ON t.account_id = a.id
-    WHERE t.id = ?
-  `).get(id);
-
-  res.json({ transaction: updated });
-});
-
-// POST /api/transactions/:id/recategorize - Recategorize & remember rule for future imports
-router.post('/:id/recategorize', requireAuth, (req: AuthRequest, res: Response): void => {
-  const userId = req.user!.id;
-  const { id } = req.params;
-  const { categoryId, createRule = false, rulePattern } = req.body;
-
-  const tx = db.prepare('SELECT * FROM transactions WHERE id = ? AND user_id = ?').get(id, userId) as any;
-  if (!tx) {
-    res.status(404).json({ error: 'Transaction not found' });
-    return;
-  }
-
-  // Update current transaction
-  db.prepare('UPDATE transactions SET category_id = ? WHERE id = ? AND user_id = ?').run(categoryId, id, userId);
-
-  let ruleCreated = false;
-  let otherUpdatedCount = 0;
-
-  if (createRule && categoryId) {
-    // Pattern to remember: user-specified or extracted keyword
-    const pattern = (rulePattern || tx.description).trim().toUpperCase();
-    if (pattern) {
-      // Save rule
-      db.prepare(`
-        INSERT INTO category_rules (user_id, category_id, pattern, match_type, priority)
-        VALUES (?, ?, ?, 'contains', 25)
-      `).run(userId, categoryId, pattern);
-      ruleCreated = true;
-
-      // Retroactively update all other transactions matching this pattern
-      const updateOthers = db.prepare(`
-        UPDATE transactions 
-        SET category_id = ? 
-        WHERE user_id = ? AND UPPER(description) LIKE ? AND id != ?
-      `).run(categoryId, userId, `%${pattern}%`, id);
-      otherUpdatedCount = Number(updateOthers.changes);
+  try {
+    const existing = await db.queryOne('SELECT id FROM transactions WHERE id = $1 AND user_id = $2', [
+      id,
+      userId,
+    ]);
+    if (!existing) {
+      res.status(404).json({ error: 'Transaction not found or unauthorized' });
+      return;
     }
+
+    await db.execute(
+      'UPDATE transactions SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1 AND user_id = $2',
+      [id, userId]
+    );
+
+    res.json({ success: true, message: 'Transaction removed' });
+  } catch (err: any) {
+    console.error('Delete transaction error:', err);
+    res.status(500).json({ error: 'Failed to delete transaction' });
   }
-
-  const updated = db.prepare(`
-    SELECT t.*, c.name as category_name, c.color as category_color, c.icon as category_icon, a.name as account_name
-    FROM transactions t
-    LEFT JOIN categories c ON t.category_id = c.id
-    LEFT JOIN accounts a ON t.account_id = a.id
-    WHERE t.id = ?
-  `).get(id);
-
-  res.json({
-    transaction: updated,
-    ruleCreated,
-    otherTransactionsUpdated: otherUpdatedCount,
-  });
-});
-
-// DELETE /api/transactions/:id
-router.delete('/:id', requireAuth, (req: AuthRequest, res: Response): void => {
-  const userId = req.user!.id;
-  const { id } = req.params;
-
-  db.prepare('DELETE FROM transactions WHERE id = ? AND user_id = ?').run(id, userId);
-  res.json({ success: true, message: 'Transaction deleted' });
-});
-
-// DELETE /api/transactions/bulk - Clear transactions for account
-router.delete('/bulk/account/:accountId', requireAuth, (req: AuthRequest, res: Response): void => {
-  const userId = req.user!.id;
-  const { accountId } = req.params;
-
-  const result = db.prepare('DELETE FROM transactions WHERE account_id = ? AND user_id = ?').run(accountId, userId);
-  res.json({ success: true, deletedCount: Number(result.changes) });
 });
 
 export default router;

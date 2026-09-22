@@ -1,116 +1,151 @@
 import { Router, Response } from 'express';
 import { db } from '../db/database.js';
 import { AuthRequest, requireAuth } from './auth.js';
-import { Category, CategoryRule } from '../types/index.js';
-import { categorizeTransaction } from '../engine/categorizer.js';
 
 const router = Router();
 
 // GET /api/categories - List user & default categories
-router.get('/', requireAuth, (req: AuthRequest, res: Response): void => {
+router.get('/', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   const userId = req.user!.id;
-  const categories = db.prepare(`
-    SELECT * FROM categories 
-    WHERE user_id IS NULL OR user_id = ? 
-    ORDER BY is_default DESC, name ASC
-  `).all(userId);
+  try {
+    const categories = await db.query(
+      `SELECT * FROM categories 
+       WHERE user_id IS NULL OR user_id = $1 
+       ORDER BY is_default DESC, name ASC`,
+      [userId]
+    );
 
-  res.json({ categories });
+    res.json({ categories });
+  } catch (err) {
+    console.error('Fetch categories error:', err);
+    res.status(500).json({ error: 'Failed to retrieve categories' });
+  }
 });
 
 // POST /api/categories - Create custom category
-router.post('/', requireAuth, (req: AuthRequest, res: Response): void => {
+router.post('/', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   const userId = req.user!.id;
   const { name, color = '#64748b', icon = 'Tag' } = req.body;
 
-  if (!name) {
+  if (!name || typeof name !== 'string' || !name.trim()) {
     res.status(400).json({ error: 'Category name is required' });
     return;
   }
 
-  const result = db.prepare(`
-    INSERT INTO categories (user_id, name, color, icon, is_default)
-    VALUES (?, ?, ?, ?, 0)
-  `).run(userId, name.trim(), color, icon);
+  try {
+    const result = await db.execute(
+      `INSERT INTO categories (user_id, name, color, icon, is_default)
+       VALUES ($1, $2, $3, $4, 0)`,
+      [userId, name.trim(), color, icon]
+    );
 
-  const newCategory = db.prepare('SELECT * FROM categories WHERE id = ?').get(Number(result.lastInsertRowid));
-  res.status(201).json({ category: newCategory });
+    const newCategory = await db.queryOne('SELECT * FROM categories WHERE id = $1', [result.lastInsertId]);
+    res.status(201).json({ category: newCategory });
+  } catch (err) {
+    console.error('Create category error:', err);
+    res.status(500).json({ error: 'Failed to create category' });
+  }
 });
 
 // GET /api/categories/rules - List rules
-router.get('/rules', requireAuth, (req: AuthRequest, res: Response): void => {
+router.get('/rules', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   const userId = req.user!.id;
-  const rules = db.prepare(`
-    SELECT r.*, c.name as category_name, c.color as category_color
-    FROM category_rules r
-    JOIN categories c ON r.category_id = c.id
-    WHERE r.user_id = ?
-    ORDER BY r.priority DESC, r.created_at DESC
-  `).all(userId);
+  try {
+    const rules = await db.query(
+      `SELECT r.*, c.name as category_name, c.color as category_color
+       FROM category_rules r
+       JOIN categories c ON r.category_id = c.id
+       WHERE r.user_id = $1
+       ORDER BY r.priority DESC, r.created_at DESC`,
+      [userId]
+    );
 
-  res.json({ rules });
+    res.json({ rules });
+  } catch (err) {
+    console.error('Fetch rules error:', err);
+    res.status(500).json({ error: 'Failed to retrieve category rules' });
+  }
 });
 
-// POST /api/categories/rules - Add new categorization rule and apply to existing matching transactions
-router.post('/rules', requireAuth, (req: AuthRequest, res: Response): void => {
+// POST /api/categories/rules - Add new categorization rule
+router.post('/rules', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   const userId = req.user!.id;
-  const { categoryId, pattern, matchType = 'contains', priority = 20, applyRetroactive = true } = req.body;
+  const { categoryId, pattern, matchType = 'contains', priority = 20 } = req.body;
 
   if (!categoryId || !pattern) {
     res.status(400).json({ error: 'Category ID and pattern are required' });
     return;
   }
 
-  const insert = db.prepare(`
-    INSERT INTO category_rules (user_id, category_id, pattern, match_type, priority)
-    VALUES (?, ?, ?, ?, ?)
-  `).run(userId, categoryId, pattern.trim(), matchType, priority);
+  try {
+    // IDOR Check: Ensure category exists and belongs to user or is default
+    const validCat = await db.queryOne(
+      'SELECT id FROM categories WHERE id = $1 AND (user_id IS NULL OR user_id = $2)',
+      [categoryId, userId]
+    );
+    if (!validCat) {
+      res.status(400).json({ error: 'Invalid or inaccessible category ID' });
+      return;
+    }
 
-  const ruleId = Number(insert.lastInsertRowid);
-  let updatedCount = 0;
+    const validTypes = ['contains', 'exact', 'starts_with', 'regex'];
+    if (!validTypes.includes(matchType)) {
+      res.status(400).json({ error: 'Invalid matchType. Must be one of: contains, exact, starts_with, regex' });
+      return;
+    }
 
-  if (applyRetroactive) {
-    // Apply rule to existing transactions of this user
-    const transactions = db.prepare('SELECT id, description, category_id FROM transactions WHERE user_id = ?').all(userId) as any[];
-    const updateTx = db.prepare('UPDATE transactions SET category_id = ? WHERE id = ?');
-
-    for (const tx of transactions) {
-      const desc = (tx.description || '').toUpperCase();
-      const pat = pattern.toUpperCase();
-      let matched = false;
-
-      if (matchType === 'exact') matched = desc === pat;
-      else if (matchType === 'starts_with') matched = desc.startsWith(pat);
-      else if (matchType === 'regex') {
-        try { matched = new RegExp(pattern, 'i').test(desc); } catch {}
-      } else {
-        matched = desc.includes(pat);
+    // ReDoS Prevention: restrict pattern length and reject dangerous nested quantifiers
+    const cleanPattern = String(pattern).trim();
+    if (matchType === 'regex') {
+      if (cleanPattern.length > 100) {
+        res.status(400).json({ error: 'Regular expression cannot exceed 100 characters' });
+        return;
       }
-
-      if (matched && tx.category_id !== categoryId) {
-        updateTx.run(categoryId, tx.id);
-        updatedCount++;
+      if (/(\+|\*|\{[\d,]+\})\s*\)(\+|\*|\{[\d,]+\})/.test(cleanPattern)) {
+        res.status(400).json({ error: 'Potentially vulnerable regular expression pattern (nested quantifiers disallowed)' });
+        return;
+      }
+      try {
+        new RegExp(cleanPattern, 'i');
+      } catch {
+        res.status(400).json({ error: 'Invalid regular expression syntax' });
+        return;
       }
     }
+
+    const insert = await db.execute(
+      `INSERT INTO category_rules (user_id, category_id, pattern, match_type, priority)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [userId, categoryId, cleanPattern, matchType, priority]
+    );
+
+    const rule = await db.queryOne(
+      `SELECT r.*, c.name as category_name, c.color as category_color
+       FROM category_rules r
+       JOIN categories c ON r.category_id = c.id
+       WHERE r.id = $1`,
+      [insert.lastInsertId]
+    );
+
+    res.status(201).json({ rule, updatedTransactionsCount: 0 });
+  } catch (err) {
+    console.error('Create rule error:', err);
+    res.status(500).json({ error: 'Failed to create rule' });
   }
-
-  const rule = db.prepare(`
-    SELECT r.*, c.name as category_name, c.color as category_color
-    FROM category_rules r
-    JOIN categories c ON r.category_id = c.id
-    WHERE r.id = ?
-  `).get(ruleId);
-
-  res.status(201).json({ rule, updatedTransactionsCount: updatedCount });
 });
 
 // DELETE /api/categories/rules/:id
-router.delete('/rules/:id', requireAuth, (req: AuthRequest, res: Response): void => {
+router.delete('/rules/:id', requireAuth, async (req: AuthRequest, res: Response): Promise<void> => {
   const userId = req.user!.id;
   const { id } = req.params;
 
-  db.prepare('DELETE FROM category_rules WHERE id = ? AND user_id = ?').run(id, userId);
-  res.json({ success: true, message: 'Rule deleted' });
+  try {
+    await db.execute('DELETE FROM category_rules WHERE id = $1 AND user_id = $2', [id, userId]);
+    res.json({ success: true, message: 'Rule deleted' });
+  } catch (err) {
+    console.error('Delete rule error:', err);
+    res.status(500).json({ error: 'Failed to delete rule' });
+  }
 });
 
 export default router;

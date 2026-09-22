@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Sliders, CheckCircle } from 'lucide-react';
+import { X, Plus, Trash2, Sliders, CheckCircle, AlertCircle } from 'lucide-react';
 import { Category, CategoryRule } from '../types.js';
 import { api } from '../services/api.js';
 
@@ -21,10 +21,13 @@ export const RuleManagerModal: React.FC<RuleManagerModalProps> = ({
   const [pattern, setPattern] = useState('');
   const [matchType, setMatchType] = useState<'contains' | 'exact' | 'starts_with' | 'regex'>('contains');
   const [statusMessage, setStatusMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     if (isOpen) {
       loadRules();
+      setErrorMessage('');
+      setStatusMessage('');
     }
   }, [isOpen]);
 
@@ -41,6 +44,7 @@ export const RuleManagerModal: React.FC<RuleManagerModalProps> = ({
     e.preventDefault();
     if (!pattern.trim()) return;
 
+    setErrorMessage('');
     try {
       const res = await api.createRule(selectedCategory, pattern.trim(), matchType);
       setPattern('');
@@ -49,17 +53,18 @@ export const RuleManagerModal: React.FC<RuleManagerModalProps> = ({
       await loadRules();
       onRulesUpdated();
     } catch (err: any) {
-      alert(err.message || 'Failed to create rule');
+      setErrorMessage(err.message || 'Failed to create rule');
     }
   };
 
   const handleDeleteRule = async (id: number) => {
+    setErrorMessage('');
     try {
       await api.deleteRule(id);
       await loadRules();
       onRulesUpdated();
     } catch (err: any) {
-      alert(err.message || 'Failed to delete rule');
+      setErrorMessage(err.message || 'Failed to delete rule');
     }
   };
 
@@ -76,18 +81,25 @@ export const RuleManagerModal: React.FC<RuleManagerModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-[900] text-[#0e0f0c]">Auto-Categorization Rules</h2>
-              <p className="text-xs text-[#454745]">Manage rules that automatically categorize imported statements</p>
+              <p className="text-xs text-[#5f655b]">Manage rules that automatically categorize imported statements</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-[#868685] hover:text-[#0e0f0c] rounded-full hover:bg-[#e8ebe6]">
+          <button onClick={onClose} className="p-2 text-[#5f655b] hover:text-[#0e0f0c] rounded-full hover:bg-[#e8ebe6]">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
+          {errorMessage && (
+            <div className="p-3.5 bg-[#fce8e8] border border-[#d03238]/30 rounded-2xl text-xs text-[#a72027] font-bold flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
           {statusMessage && (
             <div className="p-3.5 bg-[#e2f6d5] border border-[#2ead4b]/30 rounded-2xl text-xs text-[#054d28] font-bold flex items-center gap-2">
-              <CheckCircle className="w-4 h-4" />
+              <CheckCircle className="w-4 h-4 flex-shrink-0" />
               <span>{statusMessage}</span>
             </div>
           )}
@@ -130,7 +142,7 @@ export const RuleManagerModal: React.FC<RuleManagerModalProps> = ({
                   placeholder="e.g. WHOLEFDS or NETFLIX"
                   value={pattern}
                   onChange={(e) => setPattern(e.target.value)}
-                  className="w-full px-3 py-2 bg-white rounded-xl text-xs font-semibold text-[#0e0f0c] border border-[#e8ebe6] placeholder-[#868685] focus:outline-none focus:border-[#0e0f0c]"
+                  className="w-full px-3 py-2 bg-white rounded-xl text-xs font-semibold text-[#0e0f0c] border border-[#e8ebe6] placeholder-[#5f655b] focus:outline-none focus:border-[#0e0f0c]"
                 />
               </div>
             </div>
@@ -150,7 +162,7 @@ export const RuleManagerModal: React.FC<RuleManagerModalProps> = ({
           <div>
             <div className="text-xs font-[900] text-[#0e0f0c] mb-2.5 uppercase tracking-wider">Custom Rules ({rules.length})</div>
             {rules.length === 0 ? (
-              <div className="text-center py-8 text-xs text-[#868685] border border-[#e8ebe6] rounded-2xl">
+              <div className="text-center py-8 text-xs text-[#5f655b] border border-[#e8ebe6] rounded-2xl">
                 No custom rules created yet. Rules created here or from transaction recategorizations will appear here.
               </div>
             ) : (
@@ -177,7 +189,7 @@ export const RuleManagerModal: React.FC<RuleManagerModalProps> = ({
 
                     <button
                       onClick={() => handleDeleteRule(r.id)}
-                      className="p-1.5 text-[#868685] hover:text-[#d03238] rounded-full hover:bg-[#fce8e8] transition-colors"
+                      className="p-1.5 text-[#5f655b] hover:text-[#d03238] rounded-full hover:bg-[#fce8e8] transition-colors"
                       title="Delete rule"
                     >
                       <Trash2 className="w-4 h-4" />
