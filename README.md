@@ -128,7 +128,7 @@ FinTrack is built from the ground up on a strict **Zero-Knowledge Privacy Archit
 ### Quick Start
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/FinTrack.git
+git clone https://github.com/allanindrajith/FinTrack.git
 cd FinTrack
 
 # 2. Copy environment template
