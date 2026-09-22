@@ -52,8 +52,10 @@ if (fs.existsSync(clientDistPath)) {
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`🚀 FinTrack Server running on http://localhost:${PORT}`);
+const HOST = process.env.HOST || '127.0.0.1';
+
+app.listen(Number(PORT), HOST, () => {
+  console.log(`🚀 FinTrack Server running on http://${HOST}:${PORT}`);
 });
 
 export default app;
