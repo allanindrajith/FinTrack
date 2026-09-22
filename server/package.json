@@ -1,6 +1,7 @@
 {
   "name": "fintrack-server",
   "version": "1.0.0",
+  "type": "module",
   "description": "FinTrack backend server with CSV parsing, normalization, and categorization engine",
   "main": "dist/index.js",
   "scripts": {
