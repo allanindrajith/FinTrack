@@ -5,6 +5,7 @@
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)]()
 [![Target: Google Cloud Run](https://img.shields.io/badge/target-Cloud%20Run-4285F4.svg)]()
 [![Target: Firebase Hosting](https://img.shields.io/badge/frontend-Firebase%20Hosting-FFCA28.svg)]()
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-a3e635?style=flat&logo=buymeacoffee&logoColor=000000)](https://www.buymeacoffee.com/allanidrajith)
 
 **FinTrack** is an enterprise-grade, end-to-end encrypted personal finance dashboard. It features **zero-knowledge client-side encryption**, multi-bank CSV normalization, automated recurring subscription tracking, customizable retention purges, and a dual-tier AI financial assistant (**Google Gemini 2.5 Flash** default with BYO-key support for OpenAI and Anthropic Claude).
 
